@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  nestjs:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2023-05-15T21:16:26.031613139Z"
+    description: A Helm chart for Kubernetes
+    digest: b8ece8501eb1651cf7e0d1f4843480c5a13c2fe4462c77c58f5345964f0b6e78
+    name: nestjs
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/nestjs-0.1.0/nestjs-0.1.0.tgz
+    version: 0.1.0
+generated: "2023-05-15T21:16:26.031620139Z"
