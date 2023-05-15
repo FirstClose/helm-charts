@@ -11,4 +11,15 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/nestjs-0.1.0/nestjs-0.1.0.tgz
     version: 0.1.0
-generated: "2023-05-15T21:16:26.031620139Z"
+  vite:
+  - apiVersion: v2
+    appVersion: 1.16.0
+    created: "2023-05-15T21:32:58.675699199Z"
+    description: A Helm chart for Kubernetes
+    digest: fe7240e096aa96d71f53a8922c8270a9483b332924ca5eca741064e13eb715a9
+    name: vite
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
+    version: 0.1.0
+generated: "2023-05-15T21:32:58.675708299Z"
