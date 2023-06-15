@@ -3,20 +3,30 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
+deploymentPort: 3000
 
 image:
-  repository: nginx
+  repository: ghcr.io/firstclose/nest-template-repo
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "develop"
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+env: 
+  configMap:
+    PORT: "3000"
+  # secrets are matched to an .env file (secrets.env) in the helm directory
+  # values are base64 encoded automatically (see secrets.env.example)
+  # secrets:
+  #   - FOO
+  #   - BAR
+
 serviceAccount:
   # Specifies whether a service account should be created
-  create: true
+  create: false
   # Annotations to add to the service account
   annotations: {}
   # The name of the service account to use.
@@ -43,7 +53,13 @@ service:
 ingress:
   enabled: false
   className: ""
-  annotations: {}
+  annotations: 
+    cert-manager.io/cluster-issuer: tavros-first
+    konghq.com/https-redirect-status-code: '302'
+    konghq.com/preserve-host: 'true'
+    konghq.com/protocols: https
+    konghq.com/strip-path: 'true'
+    kubernetes.io/ingress.class: default
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
