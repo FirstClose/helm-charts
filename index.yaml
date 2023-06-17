@@ -3,6 +3,16 @@ entries:
   nestjs:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2023-06-17T21:05:08.750629741Z"
+    description: NestJS API Helm chart
+    digest: 3b6e3f2e4da720e58609c7999d8cd92c3ddaad0b9dcb4a52e1b2ddf5c8b810ba
+    name: nestjs
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/nestjs-1.0.2/nestjs-1.0.2.tgz
+    version: 1.0.2
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2023-06-15T15:33:56.825907364Z"
     description: NestJS API Helm chart
     digest: a8f42bbd4b15159ba23bacc327bb0c8de55b6d043a3174296fcc34c2f992a83b
@@ -31,6 +41,17 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/nestjs-0.1.0/nestjs-0.1.0.tgz
     version: 0.1.0
+  react:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2023-06-17T21:05:08.874145387Z"
+    description: A react UI Helm Chart
+    digest: 04abc3e6bc2bea8df0fd684ba058b3c0e596958647687907db7ace9a19944fe5
+    name: react
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/react-1.0.0/react-1.0.0.tgz
+    version: 1.0.0
   vite:
   - apiVersion: v2
     appVersion: 1.16.0
@@ -52,4 +73,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2023-06-15T15:33:56.991002501Z"
+generated: "2023-06-17T21:05:08.874160788Z"
