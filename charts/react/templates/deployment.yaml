@@ -1,0 +1,96 @@
+{{- $fullName := include "helm.fullname" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "helm.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "helm.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "helm.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "helm.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ trim .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.deploymentPort | default 80 }}
+              protocol: TCP
+          command: ["npm", "run", "start:prod"]
+          {{- if .Values.env }}
+          env:
+            {{- if .Values.env.configMap}}
+            {{- range $key, $val := .Values.env.configMap }}  
+            - name: {{ $key }}
+              valueFrom:
+                configMapKeyRef:
+                  name:  {{ $fullName }}-configmap
+                  key: {{ $key }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.env.secrets}}
+            {{- range .Values.env.secrets}}
+            - name: {{ . }}
+              valueFrom:
+                secretKeyRef: 
+                  name: {{ $fullName }}-secrets
+                  key: {{ . }}
+            {{- end }}
+            {{- end }}
+          {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: {{ .Values.deploymentPort | default 80 }}
+            failureThreshold: 1
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: {{ .Values.deploymentPort | default 80 }}
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            # Allow sufficient amount of time (90 seconds = periodSeconds * failureThreshold)
+            # for the registered shutdown handlers to run to completion.
+            periodSeconds: 30
+            successThreshold: 1
+            # Setting a very low timeout value (e.g. 1 second) can cause false-positive
+            # checks and service interruption.
+            timeoutSeconds: 5
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
