@@ -62,7 +62,7 @@ spec:
           {{- end }}
           readinessProbe:
             httpGet:
-              path: /api/v1/health
+              path: /
               port: {{ .Values.deploymentPort | default 80 }}
             failureThreshold: 1
             initialDelaySeconds: 5
@@ -71,7 +71,7 @@ spec:
             timeoutSeconds: 5
           livenessProbe:
             httpGet:
-              path: /api/v1/health
+              path: /
               port: {{ .Values.deploymentPort | default 80 }}
             failureThreshold: 3
             initialDelaySeconds: 10
