@@ -1,5 +1,5 @@
 # helm-charts
-Helm Charts used for Firstclose Deployments
+Helm Charts used for Firstclose Deployments  
 ![release workflow](https://github.com/FirstClose/helm-charts/actions/workflows/release.yml/badge.svg?branch=main)
 
 ## Usage
