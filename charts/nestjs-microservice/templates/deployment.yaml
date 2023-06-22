@@ -60,12 +60,12 @@ spec:
           {{- end }}
           readinessProbe:
             tcpSocket:
-              port: {{ .Values.deploymentPort | default 80 }}
+              port: {{ .Values.healthPort | default 3001 }}
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
             tcpSocket:
-              port: {{ .Values.deploymentPort | default 80 }}
+              port: {{ .Values.healthPort | default 3001 }}
             initialDelaySeconds: 15
             periodSeconds: 20
       {{- with .Values.nodeSelector }}
