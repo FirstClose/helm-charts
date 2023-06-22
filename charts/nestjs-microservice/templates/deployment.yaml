@@ -69,7 +69,7 @@ spec:
           livenessProbe:
             tcpSocket:
               port: {{ .Values.healthPort | default 3001 }}
-             failureThreshold: 3
+            failureThreshold: 3
             initialDelaySeconds: 10
             # Allow sufficient amount of time (90 seconds = periodSeconds * failureThreshold)
             # for the registered shutdown handlers to run to completion.
