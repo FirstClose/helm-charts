@@ -54,6 +54,16 @@ entries:
   nestjs-microservice:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2023-06-22T22:22:52.238413093Z"
+    description: NestJS Microservice Helm chart
+    digest: 3251eed2abc5aeb3f04170b5ed015815e6aaba25006caaf3f3e9ad95bbbb0430
+    name: nestjs-microservice
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/nestjs-microservice-1.0.1/nestjs-microservice-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2023-06-22T22:11:04.26634532Z"
     description: NestJS Microservice Helm chart
     digest: ff6a4ff3db60e850ff26a08b85538752fcb10132682d8290e64475724da3803e
@@ -104,4 +114,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2023-06-22T22:11:04.26637642Z"
+generated: "2023-06-22T22:22:52.238677196Z"
