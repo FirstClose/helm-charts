@@ -3,6 +3,16 @@ entries:
   nestjs:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2023-06-23T00:36:04.622362135Z"
+    description: NestJS API Helm chart
+    digest: 5daa9bc19a37694ba7764a21ca129852ce54d708e8dd597a93577f0bdee4a215
+    name: nestjs
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/nestjs-1.0.4/nestjs-1.0.4.tgz
+    version: 1.0.4
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2023-06-22T22:11:04.142857417Z"
     description: NestJS API Helm chart
     digest: e784cb34b4564ab51353cb9a20440fa9edd38008754898514291340422a73eaa
@@ -134,4 +144,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2023-06-22T22:59:00.773887732Z"
+generated: "2023-06-23T00:36:04.622608236Z"
