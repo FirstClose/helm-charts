@@ -60,6 +60,9 @@ spec:
             {{- end }}
             {{- end }}
           {{- end }}
+          {{- if .Values.readinessProbe }}
+          readinessProbe: {{ .Values.readinessProbe | toYaml | nindent 12 }}
+          {{- else }}
           readinessProbe:
             httpGet:
               path: /api/v1/health
@@ -69,6 +72,10 @@ spec:
             periodSeconds: 5
             successThreshold: 1
             timeoutSeconds: 5
+          {{- end }}
+          {{- if .Values.livenessProbe }}
+          livenessProbe: {{ .Values.livenessProbe | toYaml | nindent 12 }}
+          {{- else}}
           livenessProbe:
             httpGet:
               path: /api/v1/health
@@ -82,6 +89,7 @@ spec:
             # Setting a very low timeout value (e.g. 1 second) can cause false-positive
             # checks and service interruption.
             timeoutSeconds: 5
+          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
