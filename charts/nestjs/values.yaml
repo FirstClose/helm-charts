@@ -97,6 +97,7 @@ tolerations: []
 
 affinity: {}
 
+disableHealthProbes: false
 # readinessProbe:
 #   tcpSocket:
 #     port: 3001

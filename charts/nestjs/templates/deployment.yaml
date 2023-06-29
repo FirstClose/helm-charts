@@ -60,6 +60,7 @@ spec:
             {{- end }}
             {{- end }}
           {{- end }}
+          {{- if eq .Values.disableHealthProbes false }}
           {{- if .Values.readinessProbe }}
           readinessProbe: {{ .Values.readinessProbe | toYaml | nindent 12 }}
           {{- else }}
@@ -89,6 +90,7 @@ spec:
             # Setting a very low timeout value (e.g. 1 second) can cause false-positive
             # checks and service interruption.
             timeoutSeconds: 5
+          {{- end }}
           {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
