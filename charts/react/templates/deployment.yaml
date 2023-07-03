@@ -38,7 +38,7 @@ spec:
             - name: http
               containerPort: {{ .Values.deploymentPort | default 80 }}
               protocol: TCP
-          command: ["npm", "run", "start:prod"]
+#          command: ["npm", "run", "start:prod"]
           {{- if .Values.env }}
           env:
             {{- if .Values.env.configMap}}
