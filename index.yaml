@@ -115,6 +115,16 @@ entries:
   react:
   - apiVersion: v2
     appVersion: 0.0.1
+    created: "2023-07-25T06:21:48.756133596Z"
+    description: A react UI Helm Chart
+    digest: 2f9d06982c87bac57c5e0ff7b0b1e49d59204ae49b6ba6565057e9b258bc4d40
+    name: react
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/react-1.0.3/react-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: 0.0.1
     created: "2023-06-18T16:14:52.254295492Z"
     description: A react UI Helm Chart
     digest: 6387ea591a8683e2a544a1feb389491e1c1239028510f145ebeefaf5d0428e4f
@@ -136,6 +146,16 @@ entries:
   vite:
   - apiVersion: v2
     appVersion: 1.16.0
+    created: "2023-07-25T06:21:48.87936347Z"
+    description: Vite UI Helm chart
+    digest: 51a560daddcb05a1d0ff615e537ee241bf70b08da8e2cdb13c2349d108b409ba
+    name: vite
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/vite-1.0.2/vite-1.0.2.tgz
+    version: 1.0.2
+  - apiVersion: v2
+    appVersion: 1.16.0
     created: "2023-06-15T15:33:56.990986801Z"
     description: Vite UI Helm chart
     digest: 1514047ad61251f607d9a40c4e4e37ed85ce4cc25fd330e4634ed3372049d5af
@@ -154,4 +174,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2023-06-29T15:17:47.727033396Z"
+generated: "2023-07-25T06:21:48.87939497Z"
