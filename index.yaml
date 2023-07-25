@@ -145,6 +145,16 @@ entries:
     version: 1.0.0
   vite:
   - apiVersion: v2
+    appVersion: 1.0.3
+    created: "2023-07-25T08:21:02.459912298Z"
+    description: Vite UI Helm chart
+    digest: c92b58b18db7c5a67c1da8e1df0287deaa1a76723753ce70c3592c95904527a3
+    name: vite
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/vite-1.0.3/vite-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
     appVersion: 1.16.0
     created: "2023-07-25T06:21:48.87936347Z"
     description: Vite UI Helm chart
@@ -174,4 +184,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2023-07-25T06:21:48.87939497Z"
+generated: "2023-07-25T08:21:02.460028098Z"
