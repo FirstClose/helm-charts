@@ -1,5 +1,5 @@
 kafka:
-  name: kafka
+  name: fc
   version: 3.6.0
   replicas: 3
   resources: {}
