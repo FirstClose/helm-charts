@@ -1,0 +1,37 @@
+kafka:
+  name: kafka
+  version: 3.6.0
+  replicas: 3
+  resources: {}
+  listeners:
+    - name: plain
+      port: 9092
+      type: internal
+      tls: false
+    - name: tls
+      port: 9093
+      type: internal
+      tls: true
+      authentication:
+        type: tls
+  storage:
+    type: persistent-claim
+    size: 100Gi
+    deleteClaim: true
+  jvmOptions:
+    xms: 3092m
+    xmx: 3092m
+    metaspaceSize: 96m
+    maxGCPauseMillis: 20
+    initiatingHeapOccupancyPercent: 35
+    g1HeapRegionSize: 16M
+    minMetaspaceFreeRatio: 50
+    maxMetaspaceFreeRatio: 80
+    useG1GC: true
+zookeeper:
+  replicas: 3
+  resources: {}
+  storage:
+    type: persistent-claim
+    size: 100Gi
+    deleteClaim: true

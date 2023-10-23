@@ -1,0 +1,2 @@
+1. Point to the following service for the headless Kafka:
+PLAINTEXT://{{ .Values.kafka.name }}-brokers:9092
