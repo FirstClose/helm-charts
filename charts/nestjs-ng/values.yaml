@@ -1,19 +1,29 @@
-# Default values for vite.
+# Default values for nestjs.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
 revisionHistoryLimit: 1
 replicaCount: 1
+deploymentPort: 3000
 
 image:
-  repository: nginx
+  repository: ghcr.io/firstclose/nest-template-repo
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "develop"
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+env: 
+  configMap:
+    PORT: "3000"
+#  Secrets are fetched from KeyVault - Name in KeyVault should match the key and Name in the application should match
+#  the value
+#  secrets:
+#    - kv_secret_name: app_secret
+#    - kv_secret_name_2: app_secret
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -44,7 +54,13 @@ service:
 ingress:
   enabled: false
   className: ""
-  annotations: {}
+  annotations: 
+    cert-manager.io/cluster-issuer: tavros-first
+    konghq.com/https-redirect-status-code: '302'
+    konghq.com/preserve-host: 'true'
+    konghq.com/protocols: https
+    konghq.com/strip-path: 'true'
+    kubernetes.io/ingress.class: default
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
@@ -81,3 +97,25 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+disableHealthProbes: false
+# readinessProbe:
+#   tcpSocket:
+#     port: 3001
+#   failureThreshold: 3
+#   initialDelaySeconds: 10
+#   periodSeconds: 5
+#   successThreshold: 1
+#   timeoutSeconds: 5
+# livenessProbe:
+#   tcpSocket:
+#     port: 3001
+#   failureThreshold: 3
+#   initialDelaySeconds: 10
+#   # Allow sufficient amount of time (90 seconds = periodSeconds * failureThreshold)
+#   # for the registered shutdown handlers to run to completion.
+#   periodSeconds: 30
+#   successThreshold: 1
+#   # Setting a very low timeout value (e.g. 1 second) can cause false-positive
+#   # checks and service interruption.
+#   timeoutSeconds: 5
