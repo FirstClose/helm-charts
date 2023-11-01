@@ -21,9 +21,9 @@ env:
     PORT: "3000"
 #  Secrets are fetched from KeyVault - Name in KeyVault should match the key and Name in the application should match
 #  the value
-#  secrets:
-#    - kv_secret_name: app_secret
-#    - kv_secret_name_2: app_secret
+  secrets:
+    kv_secret_name: app_secret
+    kv_secret_name_2: app_secret
 
 serviceAccount:
   # Specifies whether a service account should be created
