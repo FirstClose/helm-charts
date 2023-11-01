@@ -155,6 +155,16 @@ entries:
     version: 1.0.0
   nestjs-ng:
   - apiVersion: v2
+    appVersion: 1.0.1
+    created: "2023-11-01T21:48:35.716600781Z"
+    description: NestJS API Helm chart for Next Generation at FC
+    digest: df84b19f4915e3665764ff0748a9728ab7fbba44c9d08ebc39f8ad5a6284846d
+    name: nestjs-ng
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/nestjs-ng-1.0.1/nestjs-ng-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
     appVersion: 1.0.0
     created: "2023-10-31T22:49:27.187618615Z"
     description: NestJS API Helm chart for Next Generation at FC
@@ -207,6 +217,16 @@ entries:
     version: 1.0.0
   vite:
   - apiVersion: v2
+    appVersion: 1.0.5
+    created: "2023-11-01T21:48:35.947563904Z"
+    description: Vite UI Helm chart
+    digest: 68027ff4e1a6a9f577f05f0f6e186cbafbf8b40879a715188294ec62f01fadbb
+    name: vite
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/vite-1.0.5/vite-1.0.5.tgz
+    version: 1.0.5
+  - apiVersion: v2
     appVersion: 1.0.4
     created: "2023-07-25T20:17:04.774329442Z"
     description: Vite UI Helm chart
@@ -256,4 +276,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2023-10-31T22:49:27.18795502Z"
+generated: "2023-11-01T21:48:35.947619668Z"
