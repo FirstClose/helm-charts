@@ -7,10 +7,10 @@ replicaCount: 1
 deploymentPort: 3000
 
 image:
-  repository: ghcr.io/firstclose/react-template-repo
+  repository: nginx
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "develop"
+  tag: ""
 
 imagePullSecrets: []
 nameOverride: ""
@@ -52,22 +52,16 @@ service:
   port: 80
 
 ingress:
-  enabled: true
+  enabled: false
   className: ""
-  annotations: 
-    cert-manager.io/cluster-issuer: tavros-first
-    konghq.com/https-redirect-status-code: '302'
-    konghq.com/preserve-host: 'true'
-    konghq.com/protocols: https
-    konghq.com/strip-path: 'true'
-    kubernetes.io/ingress.class: default
+  annotations: {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: react-template-repo-dev.firstclose.com
+    - host: chart-example.local
       paths:
         - path: /
-          pathType: Prefix
+          pathType: ImplementationSpecific
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
