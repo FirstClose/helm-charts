@@ -52,12 +52,14 @@ spec:
             {{- end }}
             {{- end }}
             {{- if .Values.env.secrets}}
-            {{- range $key,$value := .Values.env.secrets}}
+            {{- range $list := .Values.env.secrets}}
+            {{- range $key,$value := $list}}
             - name: {{ $value }}
               valueFrom:
                 secretKeyRef:
                   name: {{ $fullName }}-secrets
                   key: {{ $value }}
+            {{- end }}
             {{- end }}
             {{- end }}
           {{- end }}
