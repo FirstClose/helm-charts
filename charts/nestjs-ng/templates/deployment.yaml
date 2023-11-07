@@ -93,6 +93,12 @@ spec:
             timeoutSeconds: 5
           {{- end }}
           {{- end }}
+          {{- if .Values.secretMounts}}
+          volumeMounts:
+            - mountPath: {{ .Values.secretMounts.mountPath }}
+              name: secret-mount
+              readOnly: true
+          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -104,4 +110,10 @@ spec:
       {{- with .Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.secretMounts}}
+      volumes:
+        - name: secret-mount
+          secret:
+            secretName: {{ include "helm.fullname" . }}-secrets
       {{- end }}

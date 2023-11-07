@@ -20,7 +20,7 @@ env:
   configMap:
     PORT: "3000"
 #  Secrets are fetched from KeyVault - Name in KeyVault should match the key and Name in the application should match
-#  the value
+#  the value. Names in KV should NOT contain underscore `_`
 #  secrets:
 #    kv_secret_name: app_secret
 #    kv_secret_name_2: app_secret
@@ -112,3 +112,11 @@ disableHealthProbes: false
 #   # Setting a very low timeout value (e.g. 1 second) can cause false-positive
 #   # checks and service interruption.
 #   timeoutSeconds: 5
+
+#  Secrets are fetched from KeyVault - Name in KeyVault should match the key and Name in the application should match
+#  the value. Names in KV should NOT contain underscore `_`
+#secretMounts:
+#  secrets:
+#    kvsecretname: app_secret
+#    kvsecretname2: app_secret
+#  mountPath: "./secrets"
