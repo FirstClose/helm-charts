@@ -115,5 +115,5 @@ spec:
       volumes:
         - name: secret-mount
           secret:
-            secretName: {{ include "helm.fullname" . }}-secrets
+            secretName: {{ include "helm.fullname" . }}-secrets-mount
       {{- end }}
