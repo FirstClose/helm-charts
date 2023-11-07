@@ -115,8 +115,8 @@ disableHealthProbes: false
 
 #  Secrets are fetched from KeyVault - Name in KeyVault should match the key and Name in the application should match
 #  the value. Names in KV should NOT contain underscore `_`
-secretMounts:
-  secrets:
-    kvsecretname: app_secret
-    kvsecretname2: app_secret
-  mountPath: "./secrets"
+#secretMounts:
+#  secrets:
+#    kvsecretname: app_secret
+#    kvsecretname2: app_secret
+#  mountPath: "./secrets"
