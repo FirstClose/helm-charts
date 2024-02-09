@@ -5,6 +5,8 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "helm.labels" . | nindent 4 }}
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   {{- if not .Values.autoscaling.enabled }}
