@@ -39,24 +39,24 @@ spec:
               protocol: TCP
           {{- if .Values.env }}
           env:
-            {{- if .Values.env.configMap }}
-              {{- range $key, $val := .Values.env.configMap }}
-              - name: {{ $key }}
-                valueFrom:
-                  configMapKeyRef:
-                    name: {{ $fullName }}-configmap
-                    key: {{ $key }}
-              {{- end }}
-              {{- end }}
-              {{- if .Values.env.secrets }}
-              {{- range .Values.env.secrets }}
-              - name: {{ . }}
-                valueFrom:
-                  secretKeyRef:
-                    name: {{ $fullName }}-secrets
-                    key: {{ . }}
-              {{- end }}
-              {{- end }}
+            {{- if .Values.env.configMap}}
+            {{- range $key, $val := .Values.env.configMap }}
+            - name: {{ $key }}
+              valueFrom:
+                configMapKeyRef:
+                  name:  {{ $fullName }}-configmap
+                  key: {{ $key }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.env.secrets}}
+            {{- range $key,$value := .Values.env.secrets}}
+            - name: {{ $value }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $fullName }}-secrets
+                  key: {{ $value }}
+            {{- end }}
+            {{- end }}
           {{- end }}
           livenessProbe:
             httpGet:
