@@ -37,6 +37,29 @@ spec:
             - name: http
               containerPort: 80
               protocol: TCP
+          {{- if .Values.env }}
+          env:
+            { { - if .Values.env.configMap } }
+              { { - range $key, $val := .Values.env.configMap } }
+              - name: { { $key } }
+                valueFrom:
+                  configMapKeyRef:
+                    name: { { $fullName } }-configmap
+                    key: { { $key } }
+              { { - end } }
+              { { - end } }
+              { { - if .Values.env.secrets } }
+              { { - range .Values.env.secrets } }
+              - name: { { . } }
+                valueFrom:
+                  secretKeyRef:
+                    name: { { $fullName } }-secrets
+                    key: { { . } }
+              { { - end } }
+              { { - end } }
+          { { - end } }
+          { { - if eq .Values.disableHealthProbes false } }
+          { { - if .Values.readinessProbe } }
           livenessProbe:
             httpGet:
               path: /
