@@ -14,6 +14,16 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+env:
+  configMap:
+    PORT: "3000"
+    NO_COLOR: "1"
+#  Secrets are fetched from KeyVault - Name in KeyVault should match the key and Name in the application should match
+#  the value. Names in KV should NOT contain underscore `_`
+#  secrets:
+#    kv_secret_name: app_secret
+#    kv_secret_name_2: app_secret
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
