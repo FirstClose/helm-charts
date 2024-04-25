@@ -2,6 +2,8 @@
 # Number of nifi nodes
 replicaCount: 1
 
+externalSecrets:
+  NIFIPASSWORD: NIFI_PASSWORD
 ## Set default image, imageTag, and imagePullPolicy.
 ## ref: https://hub.docker.com/r/apache/nifi/
 ##

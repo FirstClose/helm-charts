@@ -397,8 +397,9 @@ spec:
         - name: {{ $value }}
           valueFrom:
             secretKeyRef:
-              name: {{ $fullName }}-secrets
+              name: nifi-external-secrets
               key: {{ $value }}
+        {{- end }}
         {{- end }}
 {{- if not (or (.Values.auth.ldap.enabled) (.Values.auth.oidc.enabled)) }}
         - name: NIFI_WEB_HTTPS_HOST
