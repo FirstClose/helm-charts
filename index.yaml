@@ -468,6 +468,53 @@ entries:
   nifi:
   - apiVersion: v2
     appVersion: 1.23.2
+    created: "2024-04-25T09:31:57.43173506Z"
+    dependencies:
+    - condition: zookeeper.enabled
+      name: zookeeper
+      repository: https://charts.bitnami.com/bitnami
+      version: 9.2.7
+    - alias: registry
+      condition: registry.enabled
+      name: nifi-registry
+      repository: https://dysnix.github.io/charts/
+      version: 1.0.0
+    - condition: ca.enabled
+      name: ca
+      repository: ""
+      version: 1.0.1
+    - condition: openldap.enabled
+      name: openldap
+      repository: https://charts.helm.sh/stable
+      version: ~1.2.4
+    description: Apache NiFi is a software project from the Apache Software Foundation
+      designed to automate the flow of data between software systems.
+    digest: 68e4382e9ddaded91d088018b0a1b963d7881203036d326fad69d149fbe4a1bf
+    home: https://nifi.apache.org/
+    icon: https://svn.apache.org/repos/asf/nifi/site/trunk/images/niFi-logo-horizontal-scaled.png
+    keywords:
+    - nifi
+    - data
+    - process
+    maintainers:
+    - email: sebastien.dupont@cetic.be
+      name: banzo
+      url: https://github.com/banzo
+    - email: amen.ayadi@cetic.be
+      name: AyadiAmen
+      url: https://github.com/AyadiAmen
+    - email: alexandre.nuttinck@cetic.be
+      name: alexnuttinck
+      url: https://github.com/alexnuttinck
+    - email: zakaria.hajja@cetic.be
+      name: zakaria2905
+      url: https://github.com/zakaria2905
+    name: nifi
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/nifi-1.2.3/nifi-1.2.3.tgz
+    version: 1.2.3
+  - apiVersion: v2
+    appVersion: 1.23.2
     created: "2024-04-25T09:09:04.905286249Z"
     dependencies:
     - condition: zookeeper.enabled
@@ -702,4 +749,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2024-04-25T09:09:04.905408757Z"
+generated: "2024-04-25T09:31:57.431870412Z"
