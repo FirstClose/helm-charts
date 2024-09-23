@@ -11,5 +11,9 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+    - port: 443
+      targetPort: http
+      protocol: TCP
+      name: https
   selector:
     {{- include "aspnet.selectorLabels" . | nindent 4 }}
