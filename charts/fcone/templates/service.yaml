@@ -8,12 +8,8 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: 80
+      targetPort: {{ .Values.service.targetPort }}
       protocol: TCP
-      name: http
-    - port: 443
-      targetPort: 443
-      protocol: TCP
-      name: https
+      name: {{ .Values.service.name }}
   selector:
     {{- include "fconet.selectorLabels" . | nindent 4 }}
