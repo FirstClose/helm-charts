@@ -28,6 +28,12 @@ kafka:
     minMetaspaceFreeRatio: 50
     maxMetaspaceFreeRatio: 80
     useG1GC: true
+  metricsConfig:
+    type: jmxPrometheusExporter
+    valueFrom:
+      configMapKeyRef:
+        name: kafka-metrics
+        key: zookeeper-metrics-config.yml
 zookeeper:
   replicas: 3
   resources: {}

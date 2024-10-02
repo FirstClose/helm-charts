@@ -59,6 +59,12 @@ spec:
         MinMetaspaceFreeRatio: {{ .Values.kafka.jvmOptions.minMetaspaceFreeRatio }}
         MaxMetaspaceFreeRatio: {{ .Values.kafka.jvmOptions.maxMetaspaceFreeRatio }}
         UseG1GC: {{ .Values.kafka.jvmOptions.useG1GC}}
+    metricsConfig:
+      -type: {{ .Values.kafka.metricsConfig.type }}
+      -valueFrom:
+        -configMapKeyRef:
+          name: {{ .Values.kafka.metricsConfig.name }}
+          key: {{ .Values.kafka.metricsConfig.key }}
   {{- end }}
 
   zookeeper:
