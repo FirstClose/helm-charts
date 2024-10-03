@@ -83,5 +83,11 @@ spec:
     topicOperator: {}
     userOperator: {}
   kafkaExporter:
+    template:
+      pod:
+        metadata:
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/port: "9404"
     topicRegex: ".*"
     groupRegex: ".*"
