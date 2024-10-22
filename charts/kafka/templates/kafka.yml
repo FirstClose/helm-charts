@@ -88,6 +88,7 @@ spec:
         metadata:
           annotations:
             prometheus.io/scrape: "true"
+            newrelic.io/scrape: "true"
             prometheus.io/port: "9404"
     topicRegex: ".*"
     groupRegex: ".*"
