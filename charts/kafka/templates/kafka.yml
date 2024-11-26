@@ -46,7 +46,7 @@ spec:
       num.partitions: 5
       default.replication.factor: 3
       min.insync.replicas: 2
-      inter.broker.protocol.version: "3.6"
+      inter.broker.protocol.version: "{{ regexFind `^([0-9]+\.[0-9]+)` .Values.kafka.version }}"
   {{- if contains "prod" .Release.Namespace }}
     jvmOptions:
       -Xms: {{ .Values.kafka.jvmOptions.xmx }}
