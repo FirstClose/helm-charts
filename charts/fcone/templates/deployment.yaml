@@ -62,6 +62,12 @@ spec:
             {{- end }}
             {{- end }}
           {{- end }}
+          {{- if .Values.secretMounts}}
+          volumeMounts:
+            - mountPath: {{ .Values.secretMounts.mountPath }}
+              name: secret-mount
+              readOnly: true
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
