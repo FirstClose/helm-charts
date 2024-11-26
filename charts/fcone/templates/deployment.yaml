@@ -86,5 +86,5 @@ spec:
       volumes:
         - name: secret-mount
           secret:
-            secretName: {{ include "helm.fullname" . }}-secrets-mount
+            secretName: {{ include "fconet.fullname" . }}-secrets-mount
       {{- end }}
