@@ -82,3 +82,9 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.secretMounts}}
+      volumes:
+        - name: secret-mount
+          secret:
+            secretName: {{ include "helm.fullname" . }}-secrets-mount
+      {{- end }}
