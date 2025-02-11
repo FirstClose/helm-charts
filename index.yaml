@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   aspnet:
   - apiVersion: v2
+    appVersion: 1.0.18
+    created: "2025-02-11T17:11:04.248237137Z"
+    description: A Helm chart for Kubernetes
+    digest: 88f0ea498b3003323fee7ba2f371321bd36bea93f87be3a8d869fc17dc59de1b
+    name: aspnet
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/aspnet-1.0.18/aspnet-1.0.18.tgz
+    version: 1.0.18
+  - apiVersion: v2
     appVersion: 1.0.17
     created: "2025-02-11T16:32:06.477547877Z"
     description: A Helm chart for Kubernetes
@@ -182,6 +192,16 @@ entries:
     - https://github.com/FirstClose/helm-charts/releases/download/aspnet-0.1.0/aspnet-0.1.0.tgz
     version: 0.1.0
   fcone:
+  - apiVersion: v2
+    appVersion: 1.0.15
+    created: "2025-02-11T17:11:04.413960122Z"
+    description: A Helm chart for Kubernetes
+    digest: 4c6a2adced7d3ed6c400f31ad1be13ad237d7747311e69614af90590eec4ffa8
+    name: fcone
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/fcone-1.0.15/fcone-1.0.15.tgz
+    version: 1.0.15
   - apiVersion: v2
     appVersion: 1.0.12
     created: "2024-11-26T23:32:05.719644943Z"
@@ -1000,4 +1020,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2025-02-11T16:32:06.477812353Z"
+generated: "2025-02-11T17:11:04.41422619Z"
