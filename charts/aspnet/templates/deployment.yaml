@@ -28,6 +28,10 @@ spec:
       serviceAccountName: {{ include "aspnet.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.hostAliases }}
+      hostAliases:
+        {{- toYaml . | nindent 4 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
