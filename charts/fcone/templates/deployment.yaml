@@ -69,7 +69,15 @@ spec:
               readOnly: true
           {{- end }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- if .Values.resources }}
+            requests:
+              cpu: "{{ .Values.resources.requests.cpu }}" 
+              memory: "{{ .Values.resources.requests.memory }}" 
+            limits:
+              cpu: "{{ .Values.resources.limits.cpu }}" 
+              memory: "{{ .Values.resources.limits.memory }}" 
+            {{- else }}
+            {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
