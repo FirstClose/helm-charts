@@ -68,16 +68,15 @@ spec:
               name: secret-mount
               readOnly: true
           {{- end }}
+          {{- if .Values.resources }}
           resources:
-            {{- if .Values.resources }}
             requests:
               cpu: "{{ .Values.resources.requests.cpu }}" 
               memory: "{{ .Values.resources.requests.memory }}" 
             limits:
               cpu: "{{ .Values.resources.limits.cpu }}" 
               memory: "{{ .Values.resources.limits.memory }}" 
-            {{- else }}
-            {{- end }}
+          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
