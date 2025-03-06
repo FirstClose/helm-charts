@@ -13,3 +13,4 @@ spec:
       name: {{ .Values.service.name }}
   selector:
     {{- include "fconet.selectorLabels" . | nindent 4 }}
+  sessionAffinity: {{ .Values.service.sessionAffinity }}
