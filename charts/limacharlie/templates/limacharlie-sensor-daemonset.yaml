@@ -1,27 +1,27 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: limacharlie-agent
+  name: "{{ .Values.limacharlie.agent.name }}-agent"
   namespace: {{ .Values.namespace }}
   labels:
-    app: limacharlie
+    app: {{ .Values.limacharlie.agent.name }}
 spec:
   selector:
     matchLabels:
-      name: limacharlie-agent
+      name: "{{ .Values.limacharlie.agent.name }}-agent"
   template:
     metadata:
       labels:
-        name: limacharlie-agent
+        name: "{{ .Values.limacharlie.agent.name }}-agent"
     spec:
       containers:
-        - name: limacharlie
+        - name: {{ .Values.limacharlie.agent.name }}
           image: {{ .Values.sensor.image }}
           env:
             - name: LC_INSTALLATION_KEY
               valueFrom:
                 secretKeyRef:
-                  name: limacharlie-license
+                  name: "{{ .Values.limacharlie.agent.name }}-license"
                   key: IKEY
             - name: LC_TAGS
               value: {{ .Values.sensor.tags | quote }}

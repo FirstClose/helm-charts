@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: lc-adapter-k8s-pods
+  name: {{ .Values.limacharlie.name }}
   namespace: {{ .Values.namespace }}
 spec:
   selector:
     matchLabels:
-      name: lc-adapter-k8s-pods
+      name: {{ .Values.limacharlie.name }}
   template:
     metadata:
       labels:
-        name: lc-adapter-k8s-pods
+        name: {{ .Values.limacharlie.name }}
     spec:
       containers:
-      - name: lc-adapter-k8s-pods
+      - name: {{ .Values.limacharlie.name }}
         image: refractionpoint/lc-adapter-k8s-pods
         volumeMounts:
         - mountPath: /k8s-pod-logs

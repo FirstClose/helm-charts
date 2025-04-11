@@ -4,3 +4,8 @@ namespace: default
 sensor:
   image: "limacharlie/sensor:latest"
   tags: "env=staging,cluster=firstclose-staging"
+
+limacharlie:
+  name: lc-adapter-k8s-pods
+  agent:
+    name: limacharlie
