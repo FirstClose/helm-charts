@@ -21,16 +21,11 @@ spec:
         env:
         - name: K8S_POD_LOGS
           value: /k8s-pod-logs
-        - name: OID
+        - name: LICENSE
           valueFrom:
             secretKeyRef:
               name: limacharlie-license
-              key: OID
-        - name: IKEY
-          valueFrom:
-            secretKeyRef:
-              name: limacharlie-license
-              key: IKEY
+              key: license
         - name: NAME
           value: {{ .Values.name }}
       volumes:

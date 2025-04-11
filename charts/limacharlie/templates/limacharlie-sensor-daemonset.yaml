@@ -22,7 +22,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: "{{ .Values.limacharlie.agent.name }}-license"
-                  key: IKEY
+                  key: license
             - name: LC_TAGS
               value: {{ .Values.sensor.tags | quote }}
           securityContext:
