@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: limacharlie-agent
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: limacharlie
+spec:
+  selector:
+    matchLabels:
+      name: limacharlie-agent
+  template:
+    metadata:
+      labels:
+        name: limacharlie-agent
+    spec:
+      containers:
+        - name: limacharlie
+          image: {{ .Values.sensor.image }}
+          env:
+            - name: LC_INSTALLATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: limacharlie-license
+                  key: IKEY
+            - name: LC_TAGS
+              value: {{ .Values.sensor.tags | quote }}
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: dev
+              mountPath: /dev
+            - name: proc
+              mountPath: /proc
+            - name: sys
+              mountPath: /sys
+            - name: etc
+              mountPath: /etc
+      volumes:
+        - name: dev
+          hostPath:
+            path: /dev
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys
+        - name: etc
+          hostPath:
+            path: /etc
+      hostNetwork: true
+      hostPID: true
+      dnsPolicy: ClusterFirstWithHostNet

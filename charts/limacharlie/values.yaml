@@ -1,0 +1,6 @@
+name: "k8s-pods"
+logPath: "/var/log/pods"
+namespace: default
+sensor:
+  image: "limacharlie/sensor:latest"
+  tags: "env=staging,cluster=firstclose-staging"
