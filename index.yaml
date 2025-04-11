@@ -414,6 +414,17 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/kafka-0.1.0/kafka-0.1.0.tgz
     version: 0.1.0
+  limacharlie:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2025-04-11T18:11:15.352588857Z"
+    description: A Helm chart for deploying LimaCharlie adapter
+    digest: aa81ae64b6a0a7823b4883ad6a2fb6146c0cf0dd32a8beb005e31461dcef01b3
+    name: limacharlie
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/limacharlie-1.0.0/limacharlie-1.0.0.tgz
+    version: 1.0.0
   nestjs:
   - apiVersion: v2
     appVersion: 1.0.6
@@ -1088,4 +1099,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2025-04-06T10:26:12.785298816Z"
+generated: "2025-04-11T18:11:15.352761798Z"
