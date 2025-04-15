@@ -34,3 +34,5 @@ spec:
       - hostPath:
           path: {{ .Values.logPath }}
         name: pod-logs
+
+        

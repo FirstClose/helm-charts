@@ -3,6 +3,8 @@ kind: DaemonSet
 metadata:
   name: "{{ .Values.limacharlie.name }}-windows" 
   namespace: {{ .Values.namespace }}
+  labels:
+    app: "{{ .Values.limacharlie.name }}-windows"
 spec:
   selector:
     matchLabels:
@@ -15,22 +17,22 @@ spec:
       nodeSelector:
         kubernetes.io/os: windows
       containers:
-      - name: {{ .Values.limacharlie.name }}
-        image: refractionpoint/lc-adapter-k8s-pods
-        volumeMounts:
-        - mountPath: /k8s-pod-logs
-          name: pod-logs
-        env:
-        - name: K8S_POD_LOGS
-          value: /k8s-pod-logs
-        - name: LICENSE
-          valueFrom:
-            secretKeyRef:
-              name: limacharlie-license
-              key: license
-        - name: NAME
-          value: {{ .Values.name }}
+        - name: {{ .Values.limacharlie.name }}
+          image: refractionpoint/lc-adapter-k8s-pods
+          volumeMounts:
+            - mountPath: /k8s-pod-logs
+              name: pod-logs
+          env:
+            - name: K8S_POD_LOGS
+              value: /k8s-pod-logs
+            - name: LICENSE
+              valueFrom:
+                secretKeyRef:
+                  name: limacharlie-license
+                  key: license
+            - name: NAME
+              value: {{ .Values.name }}
       volumes:
-      - hostPath:
-          path: {{ .Values.logPath }}
-        name: pod-logs
+        - hostPath:
+            path: {{ .Values.logPath }}
+          name: pod-logs
