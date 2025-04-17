@@ -16,6 +16,11 @@ spec:
     spec:
       nodeSelector:
         kubernetes.io/os: windows
+      tolerations:
+        - key: "os"
+          operator: "Equal"
+          value: "Windows"
+          effect: "NoSchedule"
       containers:
         - name: {{ .Values.limacharlie.agent.name }}
           image: {{ .Values.sensor.image }}
