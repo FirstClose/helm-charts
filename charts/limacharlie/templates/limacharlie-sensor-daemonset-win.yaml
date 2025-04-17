@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: "{{ .Values.limacharlie.agent.name }}-agent-windows"
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: "{{ .Values.limacharlie.agent.name }}-windows"
+spec:
+  selector:
+    matchLabels:
+      name: "{{ .Values.limacharlie.agent.name }}-agent-windows"
+  template:
+    metadata:
+      labels:
+        name: "{{ .Values.limacharlie.agent.name }}-agent-windows"
+    spec:
+      nodeSelector:
+        kubernetes.io/os: windows
+      containers:
+        - name: {{ .Values.limacharlie.agent.name }}
+          image: {{ .Values.sensor.image }}
+          env:
+            - name: LC_INSTALLATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.limacharlie.agent.name }}-license"
+                  key: license
+            - name: LC_TAGS
+              value: {{ .Values.sensor.tags | quote }}
+          securityContext:
+            privileged: true
+      hostNetwork: true
+      hostPID: true
+      dnsPolicy: ClusterFirstWithHostNet

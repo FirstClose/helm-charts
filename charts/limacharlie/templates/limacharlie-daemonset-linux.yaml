@@ -12,6 +12,8 @@ spec:
       labels:
         name: {{ .Values.limacharlie.name }}
     spec:
+      nodeSelector:
+        kubernetes.io/os: linux
       containers:
       - name: {{ .Values.limacharlie.name }}
         image: refractionpoint/lc-adapter-k8s-pods
@@ -32,3 +34,5 @@ spec:
       - hostPath:
           path: {{ .Values.logPath }}
         name: pod-logs
+
+        
