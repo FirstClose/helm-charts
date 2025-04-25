@@ -1,0 +1,11 @@
+name: "k8s-pods"
+logPath: "/var/log/pods"
+namespace: default
+sensor:
+  image: "refractionpoint/limacharlie_sensor_windows:latest"  # win image, (we need to create this)
+  tags: "env={{ .Values.sensor.env }},cluster={{ .Values.sensor.cluster }}"  
+
+limacharlie:
+  name: lc-adapter-k8s-pods
+  agent:
+    name: limacharlie
