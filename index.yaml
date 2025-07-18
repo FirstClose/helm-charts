@@ -345,6 +345,16 @@ entries:
     version: 1.0.1
   kafka:
   - apiVersion: v2
+    appVersion: 2.0.5
+    created: "2025-07-18T12:10:52.700576314Z"
+    description: Kafka deployment as a Helm Chart
+    digest: 3e2a5d571c8d0a79200d81e43db563eeca883f9cefa445b7557262629cc4348e
+    name: kafka
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/kafka-2.0.5/kafka-2.0.5.tgz
+    version: 2.0.5
+  - apiVersion: v2
     appVersion: 1.0.4
     created: "2025-07-18T12:05:38.433079676Z"
     description: Kafka deployment as a Helm Chart
@@ -1119,4 +1129,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2025-07-18T12:05:38.433275885Z"
+generated: "2025-07-18T12:10:52.700794083Z"
