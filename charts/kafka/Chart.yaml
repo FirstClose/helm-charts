@@ -3,4 +3,4 @@ name: kafka
 description: Kafka deployment as a Helm Chart
 type: application
 version: 2.0.3
-appVersion: "1.0.0"
+appVersion: "1.0.3"
