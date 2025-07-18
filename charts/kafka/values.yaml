@@ -1,6 +1,6 @@
 kafka:
   name: fc
-  version: 3.8.1
+  version: 3.8.0
   replicas: 3
   resources: {}
   listeners:
