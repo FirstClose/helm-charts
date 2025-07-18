@@ -416,6 +416,16 @@ entries:
     version: 0.1.0
   limacharlie:
   - apiVersion: v2
+    appVersion: 1.0.1
+    created: "2025-07-18T12:01:19.910336586Z"
+    description: A Helm chart for deploying LimaCharlie adapter
+    digest: a934cf0d45bf39eba9663cc774be1bc0049359b578550dc3204e641eebcbc09e
+    name: limacharlie
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/limacharlie-1.0.1/limacharlie-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
     appVersion: 1.0.0
     created: "2025-04-11T18:11:15.352588857Z"
     description: A Helm chart for deploying LimaCharlie adapter
@@ -1099,4 +1109,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2025-04-11T18:11:15.352761798Z"
+generated: "2025-07-18T12:01:19.910549216Z"
