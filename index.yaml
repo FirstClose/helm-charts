@@ -780,6 +780,16 @@ entries:
     version: 1.0.0
   nextjs:
   - apiVersion: v2
+    appVersion: 1.0.1
+    created: "2025-08-22T19:22:10.913888288Z"
+    description: A Nextjs Helm Chart
+    digest: 353addae8b7d60146af5e8ecd7c77e638a75c88acadc6d604907247eb49f9ddf
+    name: nextjs
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/nextjs-1.0.1/nextjs-1.0.1.tgz
+    version: 1.0.1
+  - apiVersion: v2
     appVersion: 1.0.0
     created: "2025-08-22T14:15:24.828191813Z"
     description: A Nextjs Helm Chart
@@ -1140,4 +1150,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2025-08-22T14:15:24.828461219Z"
+generated: "2025-08-22T19:22:10.914060582Z"
