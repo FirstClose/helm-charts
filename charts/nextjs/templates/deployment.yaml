@@ -1,11 +1,14 @@
+{{- $fullName := include "helm.fullname" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "helm.fullname" . }}
+  name: {{ $fullName }}
   labels:
     {{- include "helm.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   selector:
     matchLabels:
@@ -34,24 +37,32 @@ spec:
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ trim .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.deploymentPort }}
+              containerPort: {{ .Values.deploymentPort | default 80 }}
               protocol: TCP
-          envFrom:
-            {{- if .Values.env.configMap }}
-            - configMapRef:
-                name: {{ include "helm.fullname" . }}
+          {{- if .Values.env }}
+          env:
+            {{- if .Values.env.configMap}}
+            {{- range $key, $val := .Values.env.configMap }}  
+            - name: {{ $key }}
+              valueFrom:
+                configMapKeyRef:
+                  name:  {{ $fullName }}-configmap
+                  key: {{ $key }}
             {{- end }}
-            {{- if .Values.env.secrets }}
-            - secretRef:
-                name: {{ include "helm.fullname" . }}
             {{- end }}
-          {{- with .Values.resources }}
-          resources:
-            {{- toYaml . | nindent 12 }}
+            {{- if .Values.env.secrets}}
+            {{- range .Values.env.secrets}}
+            - name: {{ . }}
+              valueFrom:
+                secretKeyRef: 
+                  name: {{ $fullName }}-secrets
+                  key: {{ . }}
+            {{- end }}
+            {{- end }}
           {{- end }}
           readinessProbe:
             httpGet:
