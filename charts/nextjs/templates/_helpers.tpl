@@ -1,8 +1,8 @@
-{{- define "nextjs.name" -}}
+{{- define "helm.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
-{{- define "nextjs.fullname" -}}
+{{- define "helm.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -15,28 +15,37 @@
 {{- end -}}
 {{- end }}
 
-{{- define "nextjs.labels" -}}
-helm.sh/chart: {{ include "nextjs.chart" . }}
-app.kubernetes.io/name: {{ include "nextjs.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{/*
+Common labels
+*/}}
+{{- define "helm.labels" -}}
+helm.sh/chart: {{ include "helm.chart" . }}
+{{ include "helm.selectorLabels" . }}
+{{- if .Chart.AppVersion }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+{{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
-{{- define "nextjs.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "nextjs.name" . }}
+{{/*
+Selector labels
+*/}}
+{{- define "helm.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "helm.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
-{{- define "nextjs.chart" -}}
+{{- define "helm.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end }}
 
-{{- define "nextjs.serviceAccountName" -}}
-{{- $sa := default (dict) .Values.serviceAccount -}}
-{{- $create := default false $sa.create -}}
-{{- if $create -}}
-  {{- default (include "nextjs.fullname" .) $sa.name -}}
-{{- else -}}
-  {{- default "default" $sa.name -}}
-{{- end -}}
-{{- end -}}
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "helm.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "helm.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
