@@ -32,9 +32,11 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{- define "nextjs.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create -}}
-    {{- default (include "nextjs.fullname" .) .Values.serviceAccount.name -}}
+{{- $sa := default (dict) .Values.serviceAccount -}}
+{{- $create := default false $sa.create -}}
+{{- if $create -}}
+  {{- default (include "nextjs.fullname" .) $sa.name -}}
 {{- else -}}
-    {{- default "default" .Values.serviceAccount.name -}}
+  {{- default "default" $sa.name -}}
 {{- end -}}
 {{- end -}}
