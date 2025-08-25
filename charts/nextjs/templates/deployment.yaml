@@ -1,15 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "nextjs.fullname" . }}
+  name: {{ include "helm.fullname" . }}
   labels:
-    {{- include "nextjs.labels" . | nindent 4 }}
+    {{- include "helm.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
   selector:
     matchLabels:
-      {{- include "nextjs.selectorLabels" . | nindent 6 }}
+      {{- include "helm.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -17,15 +17,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "nextjs.selectorLabels" . | nindent 8 }}
+        {{- include "helm.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.serviceAccount }}
-      serviceAccountName: {{ include "nextjs.serviceAccountName" . }}
-      {{- end }}
+      serviceAccountName: {{ include "helm.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
@@ -45,11 +43,11 @@ spec:
           envFrom:
             {{- if .Values.env.configMap }}
             - configMapRef:
-                name: {{ include "nextjs.fullname" . }}
+                name: {{ include "helm.fullname" . }}
             {{- end }}
             {{- if .Values.env.secrets }}
             - secretRef:
-                name: {{ include "nextjs.fullname" . }}
+                name: {{ include "helm.fullname" . }}
             {{- end }}
           {{- with .Values.resources }}
           resources:
