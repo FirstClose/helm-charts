@@ -3,9 +3,9 @@ kind: Kafka
 metadata:
   name: {{ .Values.kafka.name }}
   namespace: {{ .Release.Namespace }}
-  {{- with .Values.annotations }}
+  {{- if .Values.annotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
+    {{- toYaml .Values.annotations | nindent 4 }}
   {{- end }}
 spec:
   kafka:
