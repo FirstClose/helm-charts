@@ -1,0 +1,20 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: "{{ .Values.kafkaNodePool.name }}-pool"
+  labels:
+    strimzi.io/cluster: {{ .Values.kafka.name }}
+spec:
+  replicas: {{ .Values.kafkaNodePool.replicas }}
+  roles:
+    - controller
+  storage:
+  # jbod give us more flexibility and scalability
+    type: jbod
+    volumes:
+      {{- range $volume := .Values.kafkaNodePool.storage.volumes }}
+      - id: {{ $volume.id }}
+        type: {{ $volume.type }}
+        size: {{ $volume.size }}
+        deleteClaim: {{ $volume.deleteClaim | default false }}
+      {{- end }}
