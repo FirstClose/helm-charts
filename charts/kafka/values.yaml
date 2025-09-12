@@ -36,3 +36,13 @@ zookeeper:
     type: persistent-claim
     size: 100Gi
     deleteClaim: true
+
+kafkaNodePool:
+  name: fc-controller
+  replicas: 3
+  storage:
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 100Gi
+        deleteClaim: false
