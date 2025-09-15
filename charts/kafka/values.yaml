@@ -55,7 +55,7 @@ combinedPool:
 # ------
 # prod pools
 controllerPool:
-  name: fc-controllerPool
+  name: fc-controllerpool
   replicas: 3
   storage:
     volumes:
@@ -64,7 +64,7 @@ controllerPool:
         size: 10Gi
         deleteClaim: false
 brokerPool:
-  name: fc-brokerPool
+  name: fc-brokerpool
   replicas: 3
   storage:
     volumes:
