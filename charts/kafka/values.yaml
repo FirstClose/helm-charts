@@ -3,6 +3,7 @@ kafka:
   version: 3.9.0
   annotations:
     strimzi.io/kraft: disabled
+    strimzi.io/node-pools: disabled
   replicas: 3
   resources: {}
   listeners:
@@ -38,8 +39,32 @@ zookeeper:
     size: 100Gi
     deleteClaim: true
 
-kafkaNodePool:
-  name: fc-controller
+# have a separated controller and broker nodepools
+separatedPools: true
+# ------
+# lower envs pool
+combinedPool:
+  name: fc-combinedPool
+  replicas: 3
+  storage:
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 100Gi
+        deleteClaim: false
+# ------
+# prod pools
+controllerPool:
+  name: fc-controllerPool
+  replicas: 3
+  storage:
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 10Gi
+        deleteClaim: false
+brokerPool:
+  name: fc-brokerPool
   replicas: 3
   storage:
     volumes:
