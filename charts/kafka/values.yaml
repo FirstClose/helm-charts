@@ -1,7 +1,8 @@
 kafka:
   name: fc
   version: 3.9.0
-  annotations: {}
+  annotations:
+    strimzi.io/kraft: disabled
   replicas: 3
   resources: {}
   listeners:
