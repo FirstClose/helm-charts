@@ -1,20 +1,73 @@
+# create a single nodepool with both broker and controller roles for lower-envs
+
+{{- if not .Values.isProd }}
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaNodePool
 metadata:
-  name: "{{ .Values.kafkaNodePool.name }}-pool"
+  name: "{{ .Values.combinedPool.name }}"
   labels:
     strimzi.io/cluster: {{ .Values.kafka.name }}
 spec:
-  replicas: {{ .Values.kafkaNodePool.replicas }}
+  replicas: {{ .Values.combinedPool.replicas }}
+  roles:
+    - broker
+    - controller
+  storage:
+    type: jbod
+    volumes:
+    {{- range .Values.combinedPool.storage.volumes }}
+      - id: {{ .id }}
+        type: {{ .type }}
+        size: {{ .size }}
+        deleteClaim: {{ .deleteClaim | default false }}
+    {{- end }}
+
+{{- else }}
+#
+# --- separate nodepools (broker and controllers) for prod env
+# --- Controller Node Pool ---
+#
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: "{{ .Values.controllerPool.name }}"
+  labels:
+    strimzi.io/cluster: {{ .Values.kafka.name }}
+spec:
+  replicas: {{ .Values.controllerPool.replicas }}
   roles:
     - controller
   storage:
-  # jbod give us more flexibility and scalability
     type: jbod
     volumes:
-      {{- range $volume := .Values.kafkaNodePool.storage.volumes }}
-      - id: {{ $volume.id }}
-        type: {{ $volume.type }}
-        size: {{ $volume.size }}
-        deleteClaim: {{ $volume.deleteClaim | default false }}
-      {{- end }}
+    {{- range .Values.controllerPool.storage.volumes }}
+      - id: {{ .id }}
+        type: {{ .type }}
+        size: {{ .size }}
+        deleteClaim: {{ .deleteClaim | default false }}
+    {{- end }}
+---
+#
+# --- Broker Node Pool ---
+#
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: "{{ .Values.brokerPool.name }}"
+  labels:
+    strimzi.io/cluster: {{ .Values.kafka.name }}
+spec:
+  replicas: {{ .Values.brokerPool.replicas }}
+  roles:
+    - broker
+  storage:
+    type: jbod
+    volumes:
+    {{- range .Values.brokerPool.storage.volumes }}
+      - id: {{ .id }}
+        type: {{ .type }}
+        size: {{ .size }}
+        deleteClaim: {{ .deleteClaim | default false }}
+    {{- end }}
+{{- end }}
+
