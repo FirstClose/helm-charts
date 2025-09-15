@@ -39,7 +39,8 @@ zookeeper:
     size: 100Gi
     deleteClaim: true
 
-isProd: false
+# have a separated controller and broker nodepools
+separatedPools: true
 # ------
 # lower envs pool
 combinedPool:

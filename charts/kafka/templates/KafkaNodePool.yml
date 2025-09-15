@@ -1,6 +1,6 @@
 # create a single nodepool with both broker and controller roles for lower-envs
 
-{{- if not .Values.isProd }}
+{{- if not .Values.separatedPools }}
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaNodePool
 metadata:
