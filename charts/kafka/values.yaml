@@ -2,8 +2,8 @@ kafka:
   name: fc
   version: 3.9.0
   annotations:
-    strimzi.io/kraft: disabled
-    strimzi.io/node-pools: disabled
+    strimzi.io/kraft: enabled
+    strimzi.io/node-pools: enabled
   resources: {}
   listeners:
     - name: plain
@@ -32,7 +32,7 @@ separatedPools: true
 # ------
 # lower envs pool
 combinedPool:
-  name: fc-combinedPool
+  name: combined
   replicas: 3
   storage:
     volumes:
@@ -43,7 +43,7 @@ combinedPool:
 # ------
 # prod pools
 controllerPool:
-  name: fc-controllerpool
+  name: controller
   replicas: 3
   storage:
     volumes:
@@ -52,7 +52,7 @@ controllerPool:
         size: 10Gi
         deleteClaim: false
 brokerPool:
-  name: fc-brokerpool
+  name: broker
   replicas: 3
   storage:
     volumes:

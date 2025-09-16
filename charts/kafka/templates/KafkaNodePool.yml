@@ -4,7 +4,7 @@
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaNodePool
 metadata:
-  name: "{{ .Values.combinedPool.name }}"
+  name: "{{ .Values.combinedPool.name }}-pool"
   labels:
     strimzi.io/cluster: {{ .Values.kafka.name }}
 spec:
@@ -30,7 +30,7 @@ spec:
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaNodePool
 metadata:
-  name: "{{ .Values.controllerPool.name }}"
+  name: "{{ .Values.controllerPool.name }}-pool"
   labels:
     strimzi.io/cluster: {{ .Values.kafka.name }}
 spec:
@@ -53,7 +53,7 @@ spec:
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaNodePool
 metadata:
-  name: "{{ .Values.brokerPool.name }}"
+  name: "{{ .Values.brokerPool.name }}-pool"
   labels:
     strimzi.io/cluster: {{ .Values.kafka.name }}
 spec:
