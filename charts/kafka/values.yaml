@@ -4,7 +4,6 @@ kafka:
   annotations:
     strimzi.io/kraft: disabled
     strimzi.io/node-pools: disabled
-  replicas: 3
   resources: {}
   listeners:
     - name: plain
@@ -17,10 +16,6 @@ kafka:
       tls: true
       authentication:
         type: tls
-  storage:
-    type: persistent-claim
-    size: 100Gi
-    deleteClaim: true
   jvmOptions:
     xms: 3092m
     xmx: 3092m
@@ -31,13 +26,6 @@ kafka:
     minMetaspaceFreeRatio: 50
     maxMetaspaceFreeRatio: 80
     useG1GC: true
-zookeeper:
-  replicas: 3
-  resources: {}
-  storage:
-    type: persistent-claim
-    size: 100Gi
-    deleteClaim: true
 
 # have a separated controller and broker nodepools
 separatedPools: true

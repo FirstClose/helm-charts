@@ -16,7 +16,6 @@ spec:
         kafka.root.logger.level: "WARN"
     resources:
 {{ toYaml .Values.kafka.resources | indent 6 }}
-    replicas: {{ .Values.kafka.replicas }}
     readinessProbe:
       initialDelaySeconds: 15
       timeoutSeconds: 5
@@ -38,14 +37,14 @@ spec:
 {{ toYaml $listeners.configuration | indent 10 }}
         {{- end }}
       {{- end }}
-    storage:
-      type: {{ .Values.kafka.storage.type }}
-      size: {{ .Values.kafka.storage.size }}
-      deleteClaim:  {{ .Values.kafka.storage.deleteClaim }}
     config:
-      offsets.topic.replication.factor: {{ .Values.kafka.replicas }}
-      transaction.state.log.replication.factor: {{ .Values.kafka.replicas }}
-      transaction.state.log.min.isr: {{ sub .Values.kafka.replicas 1 }}
+      {{- $brokerReplicas := .Values.brokerPool.replicas -}}
+      {{- if not .Values.isProd -}}
+        {{- $brokerReplicas = .Values.combinedPool.replicas -}}
+      {{- end }}
+      offsets.topic.replication.factor: {{ $brokerReplicas }}
+      transaction.state.log.replication.factor: {{ $brokerReplicas }}
+      transaction.state.log.min.isr: {{ sub $brokerReplicas 1 }}
       auto.create.topics.enable: true
       num.partitions: 5
       default.replication.factor: 3
@@ -64,25 +63,6 @@ spec:
         MaxMetaspaceFreeRatio: {{ .Values.kafka.jvmOptions.maxMetaspaceFreeRatio }}
         UseG1GC: {{ .Values.kafka.jvmOptions.useG1GC}}
   {{- end }}
-
-  zookeeper:
-    logging:
-      type: inline
-      loggers:
-        zookeeper.root.logger: "WARN"
-    replicas: {{ .Values.zookeeper.replicas }}
-    readinessProbe:
-      initialDelaySeconds: 15
-      timeoutSeconds: 5
-    livenessProbe:
-      initialDelaySeconds: 15
-      timeoutSeconds: 5
-    storage:
-      type: {{ .Values.zookeeper.storage.type }}
-      size: {{ .Values.zookeeper.storage.size }}
-      deleteClaim: {{ .Values.zookeeper.storage.deleteClaim }}
-    resources:
-{{ toYaml .Values.zookeeper.resources | indent 6 }}
   entityOperator:
     topicOperator: {}
     userOperator: {}
