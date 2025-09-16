@@ -2,9 +2,8 @@ kafka:
   name: fc
   version: 3.9.0
   annotations:
-    strimzi.io/kraft: disabled
-    strimzi.io/node-pools: disabled
-  replicas: 3
+    strimzi.io/kraft: enabled
+    strimzi.io/node-pools: enabled
   resources: {}
   listeners:
     - name: plain
@@ -17,10 +16,6 @@ kafka:
       tls: true
       authentication:
         type: tls
-  storage:
-    type: persistent-claim
-    size: 100Gi
-    deleteClaim: true
   jvmOptions:
     xms: 3092m
     xmx: 3092m
@@ -31,20 +26,13 @@ kafka:
     minMetaspaceFreeRatio: 50
     maxMetaspaceFreeRatio: 80
     useG1GC: true
-zookeeper:
-  replicas: 3
-  resources: {}
-  storage:
-    type: persistent-claim
-    size: 100Gi
-    deleteClaim: true
 
 # have a separated controller and broker nodepools
 separatedPools: true
 # ------
 # lower envs pool
 combinedPool:
-  name: fc-combinedPool
+  name: combined
   replicas: 3
   storage:
     volumes:
@@ -55,7 +43,7 @@ combinedPool:
 # ------
 # prod pools
 controllerPool:
-  name: fc-controllerpool
+  name: controller
   replicas: 3
   storage:
     volumes:
@@ -64,7 +52,7 @@ controllerPool:
         size: 10Gi
         deleteClaim: false
 brokerPool:
-  name: fc-brokerpool
+  name: broker
   replicas: 3
   storage:
     volumes:
