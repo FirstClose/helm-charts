@@ -6,8 +6,6 @@ revisionHistoryLimit: 1
 replicaCount: 1
 deploymentPort: 3000
 
-wip: true # Set to true to enable some work-in-progress features
-
 image:
   repository: nginx
   pullPolicy: IfNotPresent
