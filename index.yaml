@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   aspnet:
   - apiVersion: v2
+    appVersion: 1.0.19
+    created: "2026-01-14T16:20:07.149977768Z"
+    description: A Helm chart for Kubernetes
+    digest: e657ad48d8b50d7fbccf284849ade8be888f3a104ed101fc454ae8486368438c
+    name: aspnet
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/aspnet-1.0.20/aspnet-1.0.20.tgz
+    version: 1.0.20
+  - apiVersion: v2
     appVersion: 1.0.18
     created: "2025-02-11T17:11:04.248237137Z"
     description: A Helm chart for Kubernetes
@@ -1390,4 +1400,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2026-01-14T16:13:02.421166132Z"
+generated: "2026-01-14T16:20:07.150316107Z"
