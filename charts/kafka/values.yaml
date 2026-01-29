@@ -1,6 +1,6 @@
 kafka:
   name: fc
-  version: 3.9.1
+  version: 4.0.0
   annotations:
     strimzi.io/kraft: enabled
     strimzi.io/node-pools: enabled
