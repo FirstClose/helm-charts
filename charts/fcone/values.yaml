@@ -118,6 +118,46 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
+# Health probes. Disabled by default so existing releases are unaffected.
+#
+# IIS returns HTTP 503 for a site whose application pool is stopped, so a plain
+# httpGet probe detects a stopped app pool without any extra tooling. This also
+# makes K8sPodSample.isReady meaningful in New Relic, which the
+# "Windows pod not ready" alert condition depends on.
+#
+# readinessProbe:
+#   httpGet:
+#     path: /
+#     port: http
+#   initialDelaySeconds: 30
+#   periodSeconds: 30
+#   failureThreshold: 3
+#
+# livenessProbe:
+#   httpGet:
+#     path: /
+#     port: http
+#   initialDelaySeconds: 60
+#   periodSeconds: 30
+#   failureThreshold: 5
+#
+# For per-app-pool granularity instead of relying on the 503, use an exec probe
+# (more expensive - it spawns a PowerShell process on every check):
+#
+# livenessProbe:
+#   exec:
+#     command:
+#       - powershell.exe
+#       - -NoProfile
+#       - -Command
+#       - "Import-Module WebAdministration; if (Get-ChildItem IIS:\\AppPools | Where-Object { $_.State -ne 'Started' }) { exit 1 } else { exit 0 }"
+#   initialDelaySeconds: 60
+#   periodSeconds: 30
+#   failureThreshold: 3
+readinessProbe: {}
+livenessProbe: {}
+startupProbe: {}
+
 autoscaling:
   enabled: false
   minReplicas: 1
