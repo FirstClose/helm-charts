@@ -1,0 +1,98 @@
+{{- /* An app's routing, owned by the app, in the same shape as the ingress
+       block above it. The gateway chart keeps the Gateway, its listeners and
+       its certificate; everything specific to one app lives here, so onboarding
+       an app no longer needs a commit to the argocd repo.
+
+       This is deliberately the same mental model as ingress: enable it, list
+       the hostnames, and the chart renders what the platform needs. The
+       hostnames listed here also drive the IIS bindings, through
+       fconet.envConfigMap, so a route and its bindings cannot drift apart. */}}
+{{- if .Values.httpRoute.enabled }}
+{{- $fullName := include "fconet.fullname" . }}
+{{- if not .Values.httpRoute.hostnames }}{{ fail "httpRoute.enabled needs at least one entry in httpRoute.hostnames" }}{{ end }}
+{{- $port := .Values.httpRoute.port | default .Values.service.port }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "fconet.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ .Values.httpRoute.gateway.name }}
+      namespace: {{ .Values.httpRoute.gateway.namespace }}
+      sectionName: {{ .Values.httpRoute.gateway.sectionName }}
+  hostnames:
+    {{- range .Values.httpRoute.hostnames }}
+    - {{ . | quote }}
+    {{- end }}
+  rules:
+    {{- /* No rules means the whole site, which is what most apps want. */}}
+    {{- range $rule := (.Values.httpRoute.rules | default (list dict)) }}
+    {{- $headers := $.Values.httpRoute.requestHeaders }}
+    {{- if hasKey $rule "requestHeaders" }}{{- $headers = $rule.requestHeaders }}{{- end }}
+    {{- $timeout := $.Values.httpRoute.timeout }}
+    {{- if hasKey $rule "timeout" }}{{- $timeout = $rule.timeout }}{{- end }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: {{ $rule.path | default "/" | quote }}
+      {{- if or $headers $rule.rewritePrefix }}
+      filters:
+        {{- if $headers }}
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            set:
+              {{- range $name, $value := $headers }}
+              - name: {{ $name | quote }}
+                value: {{ $value | quote }}
+              {{- end }}
+        {{- end }}
+        {{- if $rule.rewritePrefix }}
+        {{- /* Drops the matched prefix so an app served under a subpath still
+               receives the paths it expects. */}}
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: {{ $rule.rewritePrefix | quote }}
+        {{- end }}
+      {{- end }}
+      backendRefs:
+        - name: {{ $fullName }}
+          port: {{ $port }}
+      {{- if $timeout }}
+      timeouts:
+        request: {{ $timeout | quote }}
+      {{- end }}
+    {{- end }}
+{{- if .Values.httpRoute.backendTLS }}
+{{- /* The backend certificate carries the public hostname, not the in-cluster
+       Service name, so the first hostname is what gets verified unless the app
+       says otherwise. */}}
+{{- $backendTLSHostname := .Values.httpRoute.backendTLSHostname | default (first .Values.httpRoute.hostnames) }}
+{{- if and (not .Values.httpRoute.useSystemCAs) (not .Values.httpRoute.caCertRefName) }}{{ fail "httpRoute.backendTLS needs either useSystemCAs or caCertRefName pointing at a ConfigMap with a ca.crt key" }}{{ end }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "fconet.labels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: ""
+      kind: Service
+      name: {{ $fullName }}
+  validation:
+    hostname: {{ $backendTLSHostname | quote }}
+    {{- if .Values.httpRoute.useSystemCAs }}
+    wellKnownCACertificates: System
+    {{- else }}
+    caCertificateRefs:
+      - group: ""
+        kind: {{ .Values.httpRoute.caCertRefKind }}
+        name: {{ .Values.httpRoute.caCertRefName }}
+    {{- end }}
+{{- end }}
+{{- end }}

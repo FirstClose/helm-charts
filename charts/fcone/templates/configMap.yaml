@@ -1,12 +1,9 @@
-{{ if .Values.env }}
-{{- if .Values.env.configMap }}
+{{- $data := include "fconet.envConfigMap" . | fromYaml }}
+{{- if $data }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "fconet.fullname" . }}-configmap
 data:
-  {{- with .Values.env.configMap }}
-    {{- toYaml . | nindent 2 }}
-  {{- end }}
-{{ end }}
-{{ end  }}
+  {{- toYaml $data | nindent 2 }}
+{{- end }}

@@ -60,3 +60,32 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+The configMap data, with the IIS host bindings derived from httpRoute.hostnames.
+
+Those WEBSITE- entries drive two things inside the container: the HTTPS binding
+IIS creates for each hostname, and the loop that binds the certificate to those
+bindings. An app whose route names a host it has no WEBSITE- entry for therefore
+serves the image's own self-signed certificate and fails backend verification,
+silently and only at the gateway. Deriving both from one list removes that
+failure mode.
+
+An explicit env.configMap entry always wins, so an app that already names its
+bindings by hand keeps them exactly as they are.
+*/}}
+{{- define "fconet.envConfigMap" -}}
+{{- $cm := dict }}
+{{- if and .Values.env .Values.env.configMap }}
+{{- $cm = deepCopy .Values.env.configMap }}
+{{- end }}
+{{- if and .Values.httpRoute .Values.httpRoute.enabled .Values.httpRoute.manageWebsiteBindings }}
+{{- range .Values.httpRoute.hostnames }}
+{{- $key := printf "WEBSITE-%s" ((splitList "." .) | first) }}
+{{- if not (hasKey $cm $key) }}
+{{- $_ := set $cm $key . }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- toYaml $cm -}}
+{{- end }}

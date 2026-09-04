@@ -106,6 +106,45 @@ ingress:
     #    hosts:
     #      - chart-example-private.local
 
+# Routing for this app, owned by this app. The gateway chart keeps the Gateway,
+# its listeners and its certificate; the hostnames an app answers on live here.
+#
+# The same hostnames drive the IIS bindings, so a route cannot name a host the
+# container has no binding for. That mismatch is invisible until the gateway
+# verifies the backend certificate and the handshake fails, so it is derived
+# rather than repeated.
+#
+#   gateway            the Gateway to attach to, and which listener
+#   hostnames          public names this app answers on
+#   backendTLSHostname name checked against the backend certificate,
+#                      defaults to the first hostname
+#   backendTLS         verify the backend certificate, on by default
+#   caCertRefName      ConfigMap holding ca.crt, distributed by trust-manager
+#   port               backend Service port, defaults to service.port
+#   timeout            total time a request may take
+#   requestHeaders     headers set before the request reaches the backend
+#   rules              path rules, defaults to one prefix match on /
+#   manageWebsiteBindings
+#                      derive the WEBSITE- IIS bindings from hostnames. Turn off
+#                      only for an app that names its bindings by hand.
+httpRoute:
+  enabled: false
+  gateway:
+    name: fc-gw
+    namespace: fc-gateway
+    sectionName: https
+  hostnames: []
+  backendTLSHostname: ""
+  backendTLS: true
+  useSystemCAs: false
+  caCertRefName: internal-ca-bundle
+  caCertRefKind: ConfigMap
+  port: ""
+  timeout: ""
+  requestHeaders: {}
+  rules: []
+  manageWebsiteBindings: true
+
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little

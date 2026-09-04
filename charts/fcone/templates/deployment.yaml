@@ -53,18 +53,20 @@ spec:
             - name: https
               containerPort: 443
               protocol: TCP
-          {{- if .Values.env }}
+          {{- $cmData := include "fconet.envConfigMap" . | fromYaml }}
+          {{- if or .Values.env $cmData }}
           env:
-            {{- if .Values.env.configMap}}
-            {{- range $key, $val := .Values.env.configMap }}
+            {{- /* Same merged set the ConfigMap holds, so a binding derived
+                   from httpRoute.hostnames reaches the container as an env var
+                   rather than sitting unreferenced in the ConfigMap. */}}
+            {{- range $key, $val := $cmData }}
             - name: {{ $key }}
               valueFrom:
                 configMapKeyRef:
                   name:  {{ $fullName }}-configmap
                   key: {{ $key }}
             {{- end }}
-            {{- end }}
-            {{- if .Values.env.secrets}}
+            {{- if and .Values.env .Values.env.secrets }}
             {{- range $key,$value := .Values.env.secrets}}
             - name: {{ $value }}
               valueFrom:
