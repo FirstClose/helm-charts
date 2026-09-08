@@ -218,6 +218,23 @@ resources: {}
 #   periodSeconds: 30
 #   failureThreshold: 5
 #
+# port above must name a port the app actually serves on. These apps bind IIS
+# to 443 (service.port 443, name https-iis); if yours does not answer on the
+# http port, use port: https with scheme: HTTPS, or the probe fails every
+# attempt and the pod never becomes Ready.
+#
+# A startupProbe covers the cold start on its own, so initialDelaySeconds on the
+# two probes above can stay short. While it is running, liveness and readiness
+# are suspended, so a slow first boot cannot restart the pod. failureThreshold
+# x periodSeconds is the whole budget IIS gets to come up - 30 x 10s here.
+#
+# startupProbe:
+#   httpGet:
+#     path: /
+#     port: http
+#   periodSeconds: 10
+#   failureThreshold: 30
+#
 # For per-app-pool granularity instead of relying on the 503, use an exec probe
 # (more expensive - it spawns a PowerShell process on every check):
 #
@@ -227,10 +244,20 @@ resources: {}
 #       - powershell.exe
 #       - -NoProfile
 #       - -Command
-#       - "Import-Module WebAdministration; if (Get-ChildItem IIS:\\AppPools | Where-Object { $_.State -ne 'Started' }) { exit 1 } else { exit 0 }"
+#       - "Import-Module WebAdministration; $p = Get-ChildItem 'IIS:\\AppPools' | Where-Object { $_.Name -eq 'YOUR-APP-POOL' }; if (-not $p -or $p.State -ne 'Started') { exit 1 } else { exit 0 }"
 #   initialDelaySeconds: 60
 #   periodSeconds: 30
+#   # Import-Module WebAdministration takes seconds on Server Core, and the
+#   # default timeoutSeconds is 1. Without this every check times out, three in a
+#   # row restart a healthy pod, and the probe becomes the outage.
+#   timeoutSeconds: 10
 #   failureThreshold: 3
+#
+# Name the app's own pool above. Enumerating every pool, as in
+# Get-ChildItem IIS:\\AppPools with no filter, fails the probe for any pool that
+# is stopped by design - a base-image default, or an unused second site. An
+# unmatched name fails too, deliberately: a probe that passes because it found
+# nothing to check is worse than one that says so.
 readinessProbe: {}
 livenessProbe: {}
 startupProbe: {}
