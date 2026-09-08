@@ -50,10 +50,13 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  ports:
-    - port: 443
-      targetPort: 443
-      name: https
+  # Scalars, not a ports list: service.yaml, ingress.yaml, httproute.yaml,
+  # NOTES.txt and the connection test all read service.port, and nothing reads
+  # service.ports. The list shape here rendered a Service with an empty port
+  # and left httpRoute.port falling back to nothing.
+  port: 443
+  targetPort: 443
+  name: https
 
 ingress:
   # Legacy ingress configuration (backward compatible)
@@ -106,6 +109,80 @@ ingress:
     #    hosts:
     #      - chart-example-private.local
 
+# Routing for this app, owned by this app. The gateway chart keeps the Gateway,
+# its listeners and its certificate; the hostnames an app answers on live here.
+#
+# The same hostnames drive the IIS bindings, so a route cannot name a host the
+# container has no binding for. That mismatch is invisible until the gateway
+# verifies the backend certificate and the handshake fails, so it is derived
+# rather than repeated.
+#
+#   gateway            the Gateway to attach to, and which listener
+#   hostnames          public names this app answers on
+#   backendTLSHostname name checked against the backend certificate,
+#                      defaults to the first hostname
+#   backendTLS         verify the backend certificate, on by default
+#   caCertRefName      ConfigMap holding ca.crt, distributed by trust-manager
+#   port               backend Service port, defaults to service.port
+#   timeout            total time a request may take
+#   requestHeaders     headers set before the request reaches the backend
+#   rules              path rules, defaults to one prefix match on /
+#   manageWebsiteBindings
+#                      derive the WEBSITE- IIS bindings from hostnames. Turn off
+#                      only for an app that names its bindings by hand.
+#   backendCertificate issue the certificate the backend serves, from the
+#                      internal CA, into the Secret the pod already mounts.
+#                      BackendTLSPolicy always verifies that certificate, and
+#                      before the gateway it existed only because cert-manager
+#                      read the Ingress. Turn this on in the same change that
+#                      sets ingress.enabled false, never while both are on.
+#   backendCertificateSecretName
+#                      overrides where it is written. Defaults to
+#                      secretMounts.secretName, then <fullname>-secrets-mount.
+#   backendCertificateDnsNames
+#                      names on that certificate, defaulting to every hostname
+#                      above. Must include whatever backendTLSHostname resolves
+#                      to, or the policy rejects what this chart issued.
+#   backendCertificatePKCS12
+#                      IIS binds from the Windows store, not from PEM on disk, so
+#                      a Windows backend needs this or it keeps serving the
+#                      image's own certificate. The password Secret must already
+#                      exist in this namespace.
+httpRoute:
+  enabled: false
+  # Points at the Gateway the argocd repo deploys from core-resources/gateway:
+  # release name fc-gw, namespace fc-gateway (the destination in
+  # configuration/core/gateway*.yaml), listener https. Nothing cross-checks
+  # this, so it has to be changed here if that ApplicationSet ever moves.
+  gateway:
+    name: fc-gw
+    namespace: fc-gateway
+    sectionName: https
+  hostnames: []
+  backendTLSHostname: ""
+  backendTLS: true
+  useSystemCAs: false
+  caCertRefName: internal-ca-bundle
+  caCertRefKind: ConfigMap
+  port: ""
+  timeout: ""
+  requestHeaders: {}
+  rules: []
+  manageWebsiteBindings: true
+  backendCertificate: false
+  backendCertificateSecretName: ""
+  backendCertificateDnsNames: []
+  backendCertificateIssuerName: internal-ca
+  backendCertificateIssuerKind: ClusterIssuer
+  # Left empty, cert-manager applies its own lifetime.
+  backendCertificateDuration: ""
+  backendCertificateRenewBefore: ""
+  backendCertificatePKCS12:
+    enabled: false
+    passwordSecretName: ""
+    passwordSecretKey: password
+    profile: ""
+
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
@@ -117,6 +194,73 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
+
+# Health probes. Disabled by default so existing releases are unaffected.
+#
+# IIS returns HTTP 503 for a site whose application pool is stopped, so a plain
+# httpGet probe detects a stopped app pool without any extra tooling. This also
+# makes K8sPodSample.isReady meaningful in New Relic, which the
+# "Windows pod not ready" alert condition depends on.
+#
+# readinessProbe:
+#   httpGet:
+#     path: /
+#     port: http
+#   initialDelaySeconds: 30
+#   periodSeconds: 30
+#   failureThreshold: 3
+#
+# livenessProbe:
+#   httpGet:
+#     path: /
+#     port: http
+#   initialDelaySeconds: 60
+#   periodSeconds: 30
+#   failureThreshold: 5
+#
+# port above must name a port the app actually serves on. These apps bind IIS
+# to 443 (service.port 443, name https-iis); if yours does not answer on the
+# http port, use port: https with scheme: HTTPS, or the probe fails every
+# attempt and the pod never becomes Ready.
+#
+# A startupProbe covers the cold start on its own, so initialDelaySeconds on the
+# two probes above can stay short. While it is running, liveness and readiness
+# are suspended, so a slow first boot cannot restart the pod. failureThreshold
+# x periodSeconds is the whole budget IIS gets to come up - 30 x 10s here.
+#
+# startupProbe:
+#   httpGet:
+#     path: /
+#     port: http
+#   periodSeconds: 10
+#   failureThreshold: 30
+#
+# For per-app-pool granularity instead of relying on the 503, use an exec probe
+# (more expensive - it spawns a PowerShell process on every check):
+#
+# livenessProbe:
+#   exec:
+#     command:
+#       - powershell.exe
+#       - -NoProfile
+#       - -Command
+#       - "Import-Module WebAdministration; $p = Get-ChildItem 'IIS:\\AppPools' | Where-Object { $_.Name -eq 'YOUR-APP-POOL' }; if (-not $p -or $p.State -ne 'Started') { exit 1 } else { exit 0 }"
+#   initialDelaySeconds: 60
+#   periodSeconds: 30
+#   # Import-Module WebAdministration takes seconds on Server Core, and the
+#   # default timeoutSeconds is 1. Without this every check times out, three in a
+#   # row restart a healthy pod, and the probe becomes the outage.
+#   timeoutSeconds: 10
+#   failureThreshold: 3
+#
+# Name the app's own pool above. Enumerating every pool, as in
+# Get-ChildItem IIS:\\AppPools with no filter, fails the probe for any pool that
+# is stopped by design - a base-image default, or an unused second site. An
+# unmatched name fails too, deliberately: a probe that passes because it found
+# nothing to check is worse than one that says so.
+readinessProbe: {}
+livenessProbe: {}
+startupProbe: {}
 
 autoscaling:
   enabled: false

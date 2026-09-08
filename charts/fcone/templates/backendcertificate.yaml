@@ -1,0 +1,92 @@
+{{- /* The BackendTLSPolicy in httproute.yaml always verifies the certificate the
+       backend serves, and has no equivalent of nginx's proxy-ssl-verify off.
+       Those backend leaves only ever existed as a side effect of cert-manager
+       reading cert-manager.io/cluster-issuer off the app's Ingress, so setting
+       ingress.enabled false — which is step one of moving an app onto the
+       gateway — leaves the policy verifying a certificate nobody issues or
+       renews, and the backend fails its handshake with "upstream connect error
+       ... remote connection failure".
+
+       Issuing it here keeps the certificate and the policy that demands it in
+       the same chart, so an app can own its route without keeping an Ingress
+       alive purely to hold a certificate.
+
+       Off by default. While the Ingress still exists, ingress-shim is filling
+       this same Secret, and two Certificates writing one Secret overwrite each
+       other on every renewal. Turn this on in the same change that retires the
+       Ingress — httproute.yaml refuses to render both at once. */}}
+{{- if .Values.httpRoute.enabled }}
+{{- if .Values.httpRoute.backendCertificate }}
+{{- $fullName := include "fconet.fullname" . }}
+{{- if not .Values.httpRoute.backendTLS }}{{ fail "httpRoute.backendCertificate issues the certificate BackendTLSPolicy verifies, but httpRoute.backendTLS is off, so nothing would verify it" }}{{ end }}
+{{- /* A route verifying against the public roots is talking to a backend that
+       already holds a publicly trusted certificate, which the internal CA must
+       not overwrite. */}}
+{{- if .Values.httpRoute.useSystemCAs }}{{ fail "httpRoute.useSystemCAs means the backend already serves a publicly trusted certificate; turn httpRoute.backendCertificate off rather than overwriting it from the internal CA" }}{{ end }}
+{{- /* Defaults to the Secret the pod already mounts, so an app opts in from the
+       httpRoute block alone and its secretMounts stay untouched. Nested ifs
+       rather than and: before Go 1.18 and evaluates both sides, so the guard
+       would itself panic when secretMounts is absent. */}}
+{{- $secretName := .Values.httpRoute.backendCertificateSecretName }}
+{{- if not $secretName }}
+{{- if .Values.secretMounts }}
+{{- if .Values.secretMounts.secretName }}
+{{- $secretName = .Values.secretMounts.secretName }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if not $secretName }}
+{{- $secretName = printf "%s-secrets-mount" $fullName }}
+{{- end }}
+{{- /* The certificate has to carry the name BackendTLSPolicy verifies, or the
+       policy rejects what this very chart issued. Defaults to every hostname
+       the route serves, which is what the Ingress tls block covered before. */}}
+{{- $backendTLSHostname := .Values.httpRoute.backendTLSHostname | default (first .Values.httpRoute.hostnames) }}
+{{- $dnsNames := .Values.httpRoute.backendCertificateDnsNames | default .Values.httpRoute.hostnames }}
+{{- if not (has $backendTLSHostname $dnsNames) }}{{ fail (printf "BackendTLSPolicy verifies %s but the backend certificate would not carry that name; add it to httpRoute.backendCertificateDnsNames" $backendTLSHostname) }}{{ end }}
+{{- $pkcs12 := .Values.httpRoute.backendCertificatePKCS12 }}
+{{- if $pkcs12.enabled }}
+{{- if not $pkcs12.passwordSecretName }}{{ fail "httpRoute.backendCertificatePKCS12.enabled needs passwordSecretName naming a Secret in this namespace" }}{{ end }}
+{{- end }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $fullName }}-backend
+  labels:
+    {{- include "fconet.labels" . | nindent 4 }}
+spec:
+  secretName: {{ $secretName }}
+  dnsNames:
+    {{- range $dnsNames }}
+    - {{ . | quote }}
+    {{- end }}
+  usages:
+    - server auth
+    - digital signature
+    - key encipherment
+  {{- with .Values.httpRoute.backendCertificateDuration }}
+  duration: {{ . | quote }}
+  {{- end }}
+  {{- with .Values.httpRoute.backendCertificateRenewBefore }}
+  renewBefore: {{ . | quote }}
+  {{- end }}
+  {{- if $pkcs12.enabled }}
+  {{- /* IIS binds certificates from the Windows store, not from PEM on disk, so
+         a Windows backend needs the PKCS#12 copy in the same Secret or it keeps
+         serving the image default while the mount looks correct. */}}
+  keystores:
+    pkcs12:
+      create: true
+      {{- with $pkcs12.profile }}
+      profile: {{ . }}
+      {{- end }}
+      passwordSecretRef:
+        name: {{ $pkcs12.passwordSecretName }}
+        key: {{ $pkcs12.passwordSecretKey | default "password" }}
+  {{- end }}
+  issuerRef:
+    name: {{ .Values.httpRoute.backendCertificateIssuerName }}
+    kind: {{ .Values.httpRoute.backendCertificateIssuerKind }}
+{{- end }}
+{{- end }}

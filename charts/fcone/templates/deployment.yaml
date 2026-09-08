@@ -14,10 +14,16 @@ spec:
       {{- include "fconet.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        {{- /* The WEBSITE- bindings arrive as configMapKeyRef, which the
+               container reads only at start. Without this, changing
+               httpRoute.hostnames updates the HTTPRoute and the ConfigMap but
+               leaves the pod spec byte-identical, so no rollout happens: the
+               gateway routes the new hostname while IIS never binds it. */}}
+        checksum/config: {{ include (print $.Template.BasePath "/configMap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
       labels:
         {{- include "fconet.selectorLabels" . | nindent 8 }}
     spec:
@@ -34,6 +40,18 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion | trim }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: 80
@@ -41,18 +59,20 @@ spec:
             - name: https
               containerPort: 443
               protocol: TCP
-          {{- if .Values.env }}
+          {{- $cmData := include "fconet.envConfigMap" . | fromYaml }}
+          {{- if or .Values.env $cmData }}
           env:
-            {{- if .Values.env.configMap}}
-            {{- range $key, $val := .Values.env.configMap }}
+            {{- /* Same merged set the ConfigMap holds, so a binding derived
+                   from httpRoute.hostnames reaches the container as an env var
+                   rather than sitting unreferenced in the ConfigMap. */}}
+            {{- range $key, $val := $cmData }}
             - name: {{ $key }}
               valueFrom:
                 configMapKeyRef:
                   name:  {{ $fullName }}-configmap
                   key: {{ $key }}
             {{- end }}
-            {{- end }}
-            {{- if .Values.env.secrets}}
+            {{- if and .Values.env .Values.env.secrets }}
             {{- range $key,$value := .Values.env.secrets}}
             - name: {{ $value }}
               valueFrom:
