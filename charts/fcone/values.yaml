@@ -50,10 +50,13 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  ports:
-    - port: 443
-      targetPort: 443
-      name: https
+  # Scalars, not a ports list: service.yaml, ingress.yaml, httproute.yaml,
+  # NOTES.txt and the connection test all read service.port, and nothing reads
+  # service.ports. The list shape here rendered a Service with an empty port
+  # and left httpRoute.port falling back to nothing.
+  port: 443
+  targetPort: 443
+  name: https
 
 ingress:
   # Legacy ingress configuration (backward compatible)
@@ -127,8 +130,30 @@ ingress:
 #   manageWebsiteBindings
 #                      derive the WEBSITE- IIS bindings from hostnames. Turn off
 #                      only for an app that names its bindings by hand.
+#   backendCertificate issue the certificate the backend serves, from the
+#                      internal CA, into the Secret the pod already mounts.
+#                      BackendTLSPolicy always verifies that certificate, and
+#                      before the gateway it existed only because cert-manager
+#                      read the Ingress. Turn this on in the same change that
+#                      sets ingress.enabled false, never while both are on.
+#   backendCertificateSecretName
+#                      overrides where it is written. Defaults to
+#                      secretMounts.secretName, then <fullname>-secrets-mount.
+#   backendCertificateDnsNames
+#                      names on that certificate, defaulting to every hostname
+#                      above. Must include whatever backendTLSHostname resolves
+#                      to, or the policy rejects what this chart issued.
+#   backendCertificatePKCS12
+#                      IIS binds from the Windows store, not from PEM on disk, so
+#                      a Windows backend needs this or it keeps serving the
+#                      image's own certificate. The password Secret must already
+#                      exist in this namespace.
 httpRoute:
   enabled: false
+  # Points at the Gateway the argocd repo deploys from core-resources/gateway:
+  # release name fc-gw, namespace fc-gateway (the destination in
+  # configuration/core/gateway*.yaml), listener https. Nothing cross-checks
+  # this, so it has to be changed here if that ApplicationSet ever moves.
   gateway:
     name: fc-gw
     namespace: fc-gateway
@@ -144,6 +169,19 @@ httpRoute:
   requestHeaders: {}
   rules: []
   manageWebsiteBindings: true
+  backendCertificate: false
+  backendCertificateSecretName: ""
+  backendCertificateDnsNames: []
+  backendCertificateIssuerName: internal-ca
+  backendCertificateIssuerKind: ClusterIssuer
+  # Left empty, cert-manager applies its own lifetime.
+  backendCertificateDuration: ""
+  backendCertificateRenewBefore: ""
+  backendCertificatePKCS12:
+    enabled: false
+    passwordSecretName: ""
+    passwordSecretKey: password
+    profile: ""
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

@@ -8,9 +8,21 @@
        hostnames listed here also drive the IIS bindings, through
        fconet.envConfigMap, so a route and its bindings cannot drift apart. */}}
 {{- if .Values.httpRoute.enabled }}
+{{- /* Two sources claiming one hostname is the state the migration is designed
+       to avoid: external-dns sees two owners and the records flap between the
+       ingress and the gateway address. Retiring the Ingress and enabling the
+       route belong in the same change. */}}
+{{- if .Values.ingress.enabled }}{{ fail "ingress.enabled and httpRoute.enabled are both on, so the Ingress and the HTTPRoute would both claim these hostnames; turn ingress.enabled off in the same change that enables the route" }}{{ end }}
 {{- $fullName := include "fconet.fullname" . }}
 {{- if not .Values.httpRoute.hostnames }}{{ fail "httpRoute.enabled needs at least one entry in httpRoute.hostnames" }}{{ end }}
 {{- $port := .Values.httpRoute.port | default .Values.service.port }}
+{{- if not $port }}{{ fail "httpRoute.enabled needs a backend port: set httpRoute.port, or service.port for the whole chart. An empty port renders as null and the route resolves no backend" }}{{ end }}
+{{- /* parentRefs is a cross-namespace reference into the argocd repo's gateway
+       chart, so this cannot be derived and nothing here can confirm the Gateway
+       exists. An empty field is the one failure that is visible from here: it
+       renders a parentRef that silently attaches to nothing. */}}
+{{- $gw := .Values.httpRoute.gateway }}
+{{- if or (not $gw.name) (not $gw.namespace) (not $gw.sectionName) }}{{ fail "httpRoute.gateway needs name, namespace and sectionName; they must match the Gateway the argocd repo deploys (release fc-gw in namespace fc-gateway, listener https)" }}{{ end }}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -71,6 +83,10 @@ spec:
        Service name, so the first hostname is what gets verified unless the app
        says otherwise. */}}
 {{- $backendTLSHostname := .Values.httpRoute.backendTLSHostname | default (first .Values.httpRoute.hostnames) }}
+{{- /* BackendTLSPolicy validation.hostname is a PreciseHostname, so a wildcard
+       is rejected. It reaches here whenever the first hostname is a wildcard
+       and the app has not named the backend certificate's own hostname. */}}
+{{- if contains "*" $backendTLSHostname }}{{ fail (printf "backendTLSHostname resolved to %s, but the certificate a backend serves cannot be verified against a wildcard; set httpRoute.backendTLSHostname to the exact name on that certificate" $backendTLSHostname) }}{{ end }}
 {{- if and (not .Values.httpRoute.useSystemCAs) (not .Values.httpRoute.caCertRefName) }}{{ fail "httpRoute.backendTLS needs either useSystemCAs or caCertRefName pointing at a ConfigMap with a ca.crt key" }}{{ end }}
 ---
 apiVersion: gateway.networking.k8s.io/v1

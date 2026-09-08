@@ -80,8 +80,21 @@ bindings by hand keeps them exactly as they are.
 {{- $cm = deepCopy .Values.env.configMap }}
 {{- end }}
 {{- if and .Values.httpRoute .Values.httpRoute.enabled .Values.httpRoute.manageWebsiteBindings }}
+{{- $derived := dict }}
 {{- range .Values.httpRoute.hostnames }}
-{{- $key := printf "WEBSITE-%s" ((splitList "." .) | first) }}
+{{- /* Wildcard labels are dropped before the key is taken: "*" is legal in a
+       hostname but not in a ConfigMap key or an env var name, so *.foo.com
+       would otherwise render WEBSITE-* and the API server would reject both
+       objects. The binding value stays the full hostname, which IIS accepts as
+       a wildcard host header. */}}
+{{- $key := printf "WEBSITE-%s" ((without (splitList "." .) "*") | first) }}
+{{- /* The key is only the leading label, so two hostnames differing further
+       right collapse onto it. Silently keeping the first put the second back
+       in exactly the state this helper exists to prevent: routed by the
+       gateway, bound by nothing, serving the image's self-signed certificate.
+       Refusing to render is the only outcome that stays visible. */}}
+{{- if hasKey $derived $key }}{{ fail (printf "httpRoute.hostnames %s and %s both derive %s, so only one would get an IIS binding and the other would fail backend TLS at the gateway; name that one by hand in env.configMap" (get $derived $key) . $key) }}{{ end }}
+{{- $_ := set $derived $key . }}
 {{- if not (hasKey $cm $key) }}
 {{- $_ := set $cm $key . }}
 {{- end }}

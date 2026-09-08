@@ -14,10 +14,16 @@ spec:
       {{- include "fconet.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        {{- /* The WEBSITE- bindings arrive as configMapKeyRef, which the
+               container reads only at start. Without this, changing
+               httpRoute.hostnames updates the HTTPRoute and the ConfigMap but
+               leaves the pod spec byte-identical, so no rollout happens: the
+               gateway routes the new hostname while IIS never binds it. */}}
+        checksum/config: {{ include (print $.Template.BasePath "/configMap.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
       labels:
         {{- include "fconet.selectorLabels" . | nindent 8 }}
     spec:
