@@ -15,6 +15,9 @@ spec:
   template:
     metadata:
       annotations:
+        {{- if and .Values.secretMounts .Values.reloader.enabled }}
+        secret.reloader.stakater.com/reload: {{ .Values.secretMounts.secretName | quote }}
+        {{- end }}
         {{- /* The WEBSITE- bindings arrive as configMapKeyRef, which the
                container reads only at start. Without this, changing
                httpRoute.hostnames updates the HTTPRoute and the ConfigMap but
@@ -40,13 +43,98 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion | trim }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.certBootstrap.enabled }}
+          {{- /* Some images bind the certificate mounted at secretMounts.mountPath
+                 themselves, in their entrypoint. The ones built by the older
+                 pipeline do not: they create the IIS HTTPS binding from the
+                 WEBSITE- variables but never import the mounted certificate, so
+                 the binding keeps the self-signed one baked into the image and
+                 BackendTLSPolicy refuses the handshake.
+
+                 This does the import from the cluster instead of the image.
+                 cert-manager writes keystore.p12 into the same Secret (the chart
+                 has no openssl to build one), so this only has to import and
+                 rebind. It runs after the entrypoint has created the bindings,
+                 and rebinding an existing binding is idempotent, so running late
+                 or twice is harmless. It must never fail: a postStart hook that
+                 exits non-zero kills the container, so everything is wrapped and
+                 the exit code is forced to 0. */}}
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - powershell.exe
+                  - -NoProfile
+                  - -Command
+                  - |
+                    try {
+                      Import-Module WebAdministration
+                      $dir  = '{{ .Values.secretMounts.mountPath }}'
+                      $p12  = Join-Path $dir 'keystore.p12'
+                      $ca   = Join-Path $dir 'ca.crt'
+                      for ($i = 0; $i -lt 60 -and -not (Test-Path $p12); $i++) { Start-Sleep -Seconds 2 }
+                      if (-not (Test-Path $p12)) { Write-Host "certBootstrap: $p12 never appeared, leaving bindings alone"; exit 0 }
+                      if (Test-Path $ca) { certutil -addstore root $ca | Out-Null }
+                      $pass = ConvertTo-SecureString $env:CERT_BOOTSTRAP_P12_PASSWORD -AsPlainText -Force
+                      $cert = Import-PfxCertificate -FilePath $p12 -CertStoreLocation 'Cert:\LocalMachine\My' -Password $pass
+                      Write-Host "certBootstrap: imported $($cert.Subject) $($cert.Thumbprint)"
+                      for ($i = 0; $i -lt 60; $i++) {
+                        $b = @(Get-WebBinding -Protocol https)
+                        if ($b.Count -gt 0) { break }
+                        Start-Sleep -Seconds 2
+                      }
+                      foreach ($b in @(Get-WebBinding -Protocol https)) {
+                        try {
+                          $b.AddSslCertificate($cert.Thumbprint, 'My')
+                          Write-Host "certBootstrap: rebound $($b.bindingInformation)"
+                        } catch { Write-Host "certBootstrap: rebind failed for $($b.bindingInformation): $_" }
+                      }
+                    } catch {
+                      Write-Host "certBootstrap: $_"
+                    }
+                    exit 0
+          {{- end }}
           {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          {{- if and .Values.certBootstrap.enabled .Values.certBootstrap.readinessGate }}
+          {{- if .Values.readinessProbe }}{{ fail "certBootstrap.readinessGate replaces readinessProbe; set one or the other" }}{{ end }}
+          {{- /* postStart has no ordering guarantee against the entrypoint, so for a
+                 few seconds after start IIS is still serving the certificate baked
+                 into the image. Without this the pod is in the Service during that
+                 window and BackendTLSPolicy rejects it -- invisible today only
+                 because the trust bundle still pins the old certificate. Gating
+                 readiness on the binding matching the mounted keystore keeps the pod
+                 out of the Service until the rebind lands, and turns a failed
+                 bootstrap into a NotReady pod rather than a silent wrong
+                 certificate. It also covers the restart after a renewal. */}}
+          readinessProbe:
+            exec:
+              command:
+                - powershell.exe
+                - -NoProfile
+                - -Command
+                - |
+                  try {
+                    $p12 = Join-Path '{{ .Values.secretMounts.mountPath }}' 'keystore.p12'
+                    if (-not (Test-Path $p12)) { exit 1 }
+                    $pass = ConvertTo-SecureString $env:CERT_BOOTSTRAP_P12_PASSWORD -AsPlainText -Force
+                    $want = (Get-PfxData -FilePath $p12 -Password $pass).EndEntityCertificates[0].Thumbprint
+                    Import-Module WebAdministration
+                    $have = @(Get-ChildItem IIS:\SslBindings | ForEach-Object { "$($_.Thumbprint)" })
+                    if ($have -contains "$want") { exit 0 }
+                    exit 1
+                  } catch { exit 1 }
+            initialDelaySeconds: {{ .Values.certBootstrap.readinessInitialDelaySeconds | default 20 }}
+            periodSeconds: {{ .Values.certBootstrap.readinessPeriodSeconds | default 15 }}
+            timeoutSeconds: {{ .Values.certBootstrap.readinessTimeoutSeconds | default 10 }}
+            failureThreshold: {{ .Values.certBootstrap.readinessFailureThreshold | default 20 }}
+          {{- else }}
           {{- with .Values.readinessProbe }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- end }}
           {{- with .Values.startupProbe }}
           startupProbe:
@@ -71,6 +159,13 @@ spec:
                 configMapKeyRef:
                   name:  {{ $fullName }}-configmap
                   key: {{ $key }}
+            {{- end }}
+            {{- if .Values.certBootstrap.enabled }}
+            - name: CERT_BOOTSTRAP_P12_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.certBootstrap.passwordSecretName }}
+                  key: {{ .Values.certBootstrap.passwordSecretKey | default "password" }}
             {{- end }}
             {{- if and .Values.env .Values.env.secrets }}
             {{- range $key,$value := .Values.env.secrets}}

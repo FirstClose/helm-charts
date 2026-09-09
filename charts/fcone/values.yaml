@@ -183,6 +183,39 @@ httpRoute:
     passwordSecretKey: password
     profile: ""
 
+# Import the mounted certificate into the Windows store and rebind IIS to it,
+# from the cluster rather than from the image's entrypoint.
+#
+# Only needed for images that do not do it themselves. fc-one-fusionweb,
+# -clientconnect and -vendorconnect are built by the pipeline that runs
+# ContainerUtils/container-entry.ps1 and already import it; fc-one-dlp and
+# fc-one-dlp-services come from an older build that creates the HTTPS binding
+# but leaves the image's own self-signed certificate on it.
+#
+# Requires cert-manager to write keystore.p12 into the mounted Secret -- these
+# images have no openssl, so the PKCS#12 cannot be built in the container. Turn
+# on backendCertificatePKCS12 wherever that certificate is issued, and point
+# passwordSecretName at the Secret holding its password.
+#
+# The certificate is imported once, at container start. A renewal therefore
+# needs a pod restart to take effect: annotate the workload for pod-reloader so
+# the Secret changing triggers one.
+# The certificate mounted at secretMounts.mountPath is read once, at container
+# start. cert-manager renews at about two thirds of the lifetime, so a pod that
+# is not restarted during the remaining third keeps serving the old certificate
+# until it expires and the gateway refuses it. pod-reloader restarts the
+# workload when that Secret changes, which closes the gap for every app --
+# whether the import comes from the image entrypoint or from certBootstrap.
+reloader:
+  enabled: true
+
+certBootstrap:
+  enabled: false
+  # Keeps the pod out of the Service until the rebind has landed.
+  readinessGate: true
+  passwordSecretName: ""
+  passwordSecretKey: password
+
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
