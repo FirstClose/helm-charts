@@ -62,9 +62,9 @@ spec:
     {{- end }}
 {{- end }}
 
----
 {{- /* Public ingress */ -}}
-{{- if .Values.ingress.public.enabled -}}
+{{- if .Values.ingress.public.enabled }}
+---
 {{- if and .Values.ingress.public.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.ingress.public.annotations "kubernetes.io/ingress.class") }}
   {{- $_ := set .Values.ingress.public.annotations "kubernetes.io/ingress.class" .Values.ingress.public.className}}
@@ -124,9 +124,9 @@ spec:
     {{- end }}
 {{- end }}
 
----
 {{- /* Private ingress */ -}}
-{{- if .Values.ingress.private.enabled -}}
+{{- if .Values.ingress.private.enabled }}
+---
 {{- if and .Values.ingress.private.className (not (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion)) }}
   {{- if not (hasKey .Values.ingress.private.annotations "kubernetes.io/ingress.class") }}
   {{- $_ := set .Values.ingress.private.annotations "kubernetes.io/ingress.class" .Values.ingress.private.className}}
