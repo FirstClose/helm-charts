@@ -15,9 +15,16 @@
        this same Secret, and two Certificates writing one Secret overwrite each
        other on every renewal. Turn this on in the same change that retires the
        Ingress — httproute.yaml refuses to render both at once. */}}
-{{- if .Values.httpRoute.enabled }}
+{{- /* Deliberately not gated on httpRoute.enabled. Issuing the certificate a
+       backend serves is independent of routing to it, and coupling them makes
+       the only safe migration order impossible: secretMounts cannot mount a
+       Secret that does not exist, the Secret appears when the certificate is
+       issued, and gating that on the route means routing traffic at a backend
+       still serving the wrong certificate. Set backendCertificate with
+       httpRoute.enabled false to stage it, verify, then turn the route on. */}}
 {{- if .Values.httpRoute.backendCertificate }}
 {{- $fullName := include "fconet.fullname" . }}
+{{- if not .Values.httpRoute.hostnames }}{{ fail "httpRoute.backendCertificate needs httpRoute.hostnames: the certificate carries those names even when the route itself is off" }}{{ end }}
 {{- if not .Values.httpRoute.backendTLS }}{{ fail "httpRoute.backendCertificate issues the certificate BackendTLSPolicy verifies, but httpRoute.backendTLS is off, so nothing would verify it" }}{{ end }}
 {{- /* A route verifying against the public roots is talking to a backend that
        already holds a publicly trusted certificate, which the internal CA must
@@ -88,5 +95,4 @@ spec:
   issuerRef:
     name: {{ .Values.httpRoute.backendCertificateIssuerName }}
     kind: {{ .Values.httpRoute.backendCertificateIssuerKind }}
-{{- end }}
 {{- end }}
