@@ -20,12 +20,17 @@
 {{- $gw := .Values.httpRoute.gateway }}
 {{- if or (not $gw.name) (not $gw.namespace) (not $gw.sectionName) }}{{ fail "httpRoute.gateway needs name, namespace and sectionName; they must match the Gateway the argocd repo deploys (release fc-gw in namespace fc-gateway, listener https)" }}{{ end }}
 {{- /* One app, one route is the common case and stays the plain form: hostnames
-       and rules at the top of the block. An app needs several routes when one
-       will not hold what it serves -- more than the 16 hostnames a single
-       HTTPRoute accepts, or two groups of hostnames wanting different paths,
-       since rules apply to every hostname on their route. Both then go in
-       httpRoute.routes, and neither case is a reason to move hostnames back
-       into the argocd repo. */}}
+       and rules at the top of the block.
+
+       Two things break that. A route accepts at most 16 hostnames, which is a
+       limit of the API and nothing to do with how an app thinks about its
+       names, so the template splits a longer list itself rather than making
+       someone keep buckets in values and remember which has room. And rules
+       apply to every hostname on their route, so hostnames that need different
+       paths cannot share one: those go in httpRoute.routes, where the name
+       says what distinguishes them.
+
+       Neither case is a reason to move hostnames back into the argocd repo. */}}
 {{- $routes := .Values.httpRoute.routes | default list }}
 {{- if $routes }}
 {{- if .Values.httpRoute.hostnames }}{{ fail "httpRoute.hostnames and httpRoute.routes are both set; move those hostnames into a routes entry so one place lists them" }}{{ end }}
@@ -34,23 +39,36 @@
 {{- if not .Values.httpRoute.hostnames }}{{ fail "httpRoute.enabled needs at least one entry in httpRoute.hostnames, or a httpRoute.routes entry carrying them" }}{{ end }}
 {{- $routes = list (dict "hostnames" .Values.httpRoute.hostnames "rules" (.Values.httpRoute.rules | default list)) }}
 {{- end }}
-{{- $seen := dict }}
-{{- range $i, $r := $routes }}
+{{- /* Flattened first so the split is settled before anything renders: a route
+       is one entry here, or several when its hostnames do not fit. A list that
+       fits keeps the plain name, so the suffix appears only where a split
+       actually happened and adding the 17th hostname is what renames it. */}}
+{{- $rendered := list }}
+{{- range $r := $routes }}
 {{- if not $r.hostnames }}{{ fail "every httpRoute.routes entry needs its own hostnames" }}{{ end }}
-{{- /* Caught here rather than by the API server, which rejects the object with
-       a message about an item limit and no hint which route it means. */}}
-{{- if gt (len $r.hostnames) 16 }}{{ fail (printf "a single HTTPRoute accepts at most 16 hostnames and this one carries %d; split it across httpRoute.routes entries" (len $r.hostnames)) }}{{ end }}
-{{- $rname := $fullName }}
-{{- if $r.name }}{{ $rname = printf "%s-%s" $fullName $r.name }}{{ end }}
-{{- if hasKey $seen $rname }}{{ fail (printf "two routes would both be named %s; give each httpRoute.routes entry a distinct name, and at most one entry no name at all" $rname) }}{{ end }}
-{{- $_ := set $seen $rname true }}
+{{- $base := $fullName }}
+{{- if $r.name }}{{ $base = printf "%s-%s" $fullName $r.name }}{{ end }}
+{{- $chunks := chunk 16 $r.hostnames }}
+{{- range $ci, $hosts := $chunks }}
+{{- $rname := $base }}
+{{- if gt (len $chunks) 1 }}{{ $rname = printf "%s-%d" $base (add1 $ci) }}{{ end }}
+{{- $rendered = append $rendered (dict "name" $rname "hostnames" $hosts "route" $r) }}
+{{- end }}
+{{- end }}
+{{- $seen := dict }}
+{{- range $e := $rendered }}
+{{- if hasKey $seen $e.name }}{{ fail (printf "two routes would both be named %s; give each httpRoute.routes entry a distinct name, and at most one entry no name at all" $e.name) }}{{ end }}
+{{- $_ := set $seen $e.name true }}
+{{- end }}
+{{- range $i, $e := $rendered }}
+{{- $r := $e.route }}
 {{- if $i }}
 ---
 {{- end }}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: {{ $rname }}
+  name: {{ $e.name }}
   labels:
     {{- include "vite.labels" $ | nindent 4 }}
 spec:
@@ -59,7 +77,7 @@ spec:
       namespace: {{ $gw.namespace }}
       sectionName: {{ $gw.sectionName }}
   hostnames:
-    {{- range $r.hostnames }}
+    {{- range $e.hostnames }}
     - {{ . | quote }}
     {{- end }}
   rules:
