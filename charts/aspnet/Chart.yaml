@@ -15,7 +15,7 @@ type: application
 # This is the chart version. This version number should be incremented each time you make changes
 # to the chart and its templates, including the app version.
 # Versions are expected to follow Semantic Versioning (https://semver.org/)
-version: 1.0.23
+version: 1.0.24
 
 
 # This is the version number of the application being deployed. This version number should be
@@ -23,3 +23,11 @@ version: 1.0.23
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
 appVersion: "1.0.19"
+
+dependencies:
+  # A library chart: it renders nothing itself and carries the route template the
+  # app charts share. Referenced by path and vendored into charts/, the way nifi
+  # already does its subchart, so packaging needs no repository and no network.
+  - name: fc-common
+    version: 0.1.0
+    repository: file://../../library/fc-common

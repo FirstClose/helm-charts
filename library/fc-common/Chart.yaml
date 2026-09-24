@@ -1,0 +1,8 @@
+apiVersion: v2
+name: fc-common
+description: Templates shared by the app charts, so one behaviour lives in one place
+# A library chart: it renders nothing on its own and cannot be installed. It
+# exists to be depended on, which is the only mechanism Helm has for sharing a
+# template between charts.
+type: library
+version: 0.1.0

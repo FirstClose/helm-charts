@@ -1,0 +1,6 @@
+dependencies:
+- name: fc-common
+  repository: file://../../library/fc-common
+  version: 0.1.0
+digest: sha256:5dcfa5016c62cbbdae1ea4bbdc48f924f53cc3cfa494e7dd218d1c95e2bd6c3c
+generated: "2026-09-25T00:17:36.974720898+03:00"

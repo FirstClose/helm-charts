@@ -2,5 +2,13 @@ apiVersion: v2
 name: nextjs
 description: A Nextjs Helm Chart
 type: application
-version: 1.0.9
-appVersion: '1.0.9'
+version: 1.0.10
+appVersion: '1.0.10'
+
+dependencies:
+  # A library chart: it renders nothing itself and carries the route template the
+  # app charts share. Referenced by path and vendored into charts/, the way nifi
+  # already does its subchart, so packaging needs no repository and no network.
+  - name: fc-common
+    version: 0.1.0
+    repository: file://../../library/fc-common
