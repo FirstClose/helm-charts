@@ -12,7 +12,6 @@
        Ingress and enabling the route belong in the same change. */}}
 {{- if .Values.ingress.enabled }}{{ fail "ingress.enabled and httpRoute.enabled are both on, so the Ingress and the HTTPRoute would both claim these hostnames; turn ingress.enabled off in the same change that enables the route" }}{{ end }}
 {{- $fullName := include "aspnet.fullname" . }}
-{{- if not .Values.httpRoute.hostnames }}{{ fail "httpRoute.enabled needs at least one entry in httpRoute.hostnames" }}{{ end }}
 {{- $port := .Values.httpRoute.port | default .Values.service.port }}
 {{- if not $port }}{{ fail "httpRoute.enabled needs a backend port: set httpRoute.port, or service.port for the whole chart" }}{{ end }}
 {{- /* parentRefs is a cross-namespace reference into the argocd repo's gateway
@@ -20,27 +19,60 @@
        the one failure visible from here: it silently attaches to nothing. */}}
 {{- $gw := .Values.httpRoute.gateway }}
 {{- if or (not $gw.name) (not $gw.namespace) (not $gw.sectionName) }}{{ fail "httpRoute.gateway needs name, namespace and sectionName; they must match the Gateway the argocd repo deploys (release fc-gw in namespace fc-gateway, listener https)" }}{{ end }}
+{{- /* One app, one route is the common case and stays the plain form: hostnames
+       and rules at the top of the block. An app needs several routes when one
+       will not hold what it serves -- more than the 16 hostnames a single
+       HTTPRoute accepts, or two groups of hostnames wanting different paths,
+       since rules apply to every hostname on their route. Both then go in
+       httpRoute.routes, and neither case is a reason to move hostnames back
+       into the argocd repo. */}}
+{{- $routes := .Values.httpRoute.routes | default list }}
+{{- if $routes }}
+{{- if .Values.httpRoute.hostnames }}{{ fail "httpRoute.hostnames and httpRoute.routes are both set; move those hostnames into a routes entry so one place lists them" }}{{ end }}
+{{- if .Values.httpRoute.rules }}{{ fail "httpRoute.rules and httpRoute.routes are both set; rules belong to a route, so move them into the routes entry they apply to" }}{{ end }}
+{{- else }}
+{{- if not .Values.httpRoute.hostnames }}{{ fail "httpRoute.enabled needs at least one entry in httpRoute.hostnames, or a httpRoute.routes entry carrying them" }}{{ end }}
+{{- $routes = list (dict "hostnames" .Values.httpRoute.hostnames "rules" (.Values.httpRoute.rules | default list)) }}
+{{- end }}
+{{- $seen := dict }}
+{{- range $i, $r := $routes }}
+{{- if not $r.hostnames }}{{ fail "every httpRoute.routes entry needs its own hostnames" }}{{ end }}
+{{- /* Caught here rather than by the API server, which rejects the object with
+       a message about an item limit and no hint which route it means. */}}
+{{- if gt (len $r.hostnames) 16 }}{{ fail (printf "a single HTTPRoute accepts at most 16 hostnames and this one carries %d; split it across httpRoute.routes entries" (len $r.hostnames)) }}{{ end }}
+{{- $rname := $fullName }}
+{{- if $r.name }}{{ $rname = printf "%s-%s" $fullName $r.name }}{{ end }}
+{{- if hasKey $seen $rname }}{{ fail (printf "two routes would both be named %s; give each httpRoute.routes entry a distinct name, and at most one entry no name at all" $rname) }}{{ end }}
+{{- $_ := set $seen $rname true }}
+{{- if $i }}
+---
+{{- end }}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: {{ $fullName }}
+  name: {{ $rname }}
   labels:
-    {{- include "aspnet.labels" . | nindent 4 }}
+    {{- include "aspnet.labels" $ | nindent 4 }}
 spec:
   parentRefs:
     - name: {{ $gw.name }}
       namespace: {{ $gw.namespace }}
       sectionName: {{ $gw.sectionName }}
   hostnames:
-    {{- range .Values.httpRoute.hostnames }}
+    {{- range $r.hostnames }}
     - {{ . | quote }}
     {{- end }}
   rules:
     {{- /* No rules means the whole site, which is what most apps want. */}}
-    {{- range $rule := (.Values.httpRoute.rules | default (list dict)) }}
+    {{- range $rule := ($r.rules | default (list dict)) }}
+    {{- /* A rule overrides its route, which overrides the block default.
+           default reads an empty map or string as unset, so an override that
+           clears an inherited value has to be found with hasKey. */}}
     {{- $headers := $.Values.httpRoute.requestHeaders }}
+    {{- if hasKey $r "requestHeaders" }}{{- $headers = $r.requestHeaders }}{{- end }}
     {{- if hasKey $rule "requestHeaders" }}{{- $headers = $rule.requestHeaders }}{{- end }}
     {{- $timeout := $.Values.httpRoute.timeout }}
+    {{- if hasKey $r "timeout" }}{{- $timeout = $r.timeout }}{{- end }}
     {{- if hasKey $rule "timeout" }}{{- $timeout = $rule.timeout }}{{- end }}
     - matches:
         - path:
@@ -75,4 +107,5 @@ spec:
         request: {{ $timeout | quote }}
       {{- end }}
     {{- end }}
+{{- end }}
 {{- end }}
