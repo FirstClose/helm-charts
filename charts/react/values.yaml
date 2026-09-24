@@ -86,6 +86,24 @@ httpRoute:
   # Empty routes the whole site. Each entry: path, and optionally
   # rewritePrefix, timeout, requestHeaders.
   rules: []
+  # A route accepts at most 16 hostnames, so a longer list is split across as
+  # many routes as it needs and each gets a numbered suffix. Nothing to maintain
+  # here: add the 17th hostname and the split happens, and a list that fits
+  # keeps the plain release name.
+  #
+  # routes is for the other case, where one route will not do because rules
+  # apply to every hostname on it and some of these need a different path. Set
+  # this instead of hostnames and rules above, not as well. Each entry:
+  # hostnames, and optionally name, rules, timeout, requestHeaders. name is
+  # suffixed to the release name, and one entry may leave it out.
+  #
+  #   routes:
+  #     - hostnames: [a.example.com]
+  #     - name: borrowerportal
+  #       hostnames: [b.example.com]
+  #       rules:
+  #         - path: /borrowerportal
+  routes: []
   # Several routes for one app, for when a single one will not hold what it
   # serves: more than the 16 hostnames an HTTPRoute accepts, or two groups of
   # hostnames needing different paths, since rules apply to every hostname on
