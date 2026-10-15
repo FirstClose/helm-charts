@@ -234,6 +234,16 @@ entries:
   devops:
   - apiVersion: v2
     appVersion: 1.0.3
+    created: "2026-10-15T15:09:46.843773171Z"
+    description: A Helm chart for Kubernetes
+    digest: ebc98509e7eb4fb7180de279a5f7c50bfdd0be84864871be02974bb83eeda785
+    name: devops
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/devops-1.0.4/devops-1.0.4.tgz
+    version: 1.0.4
+  - apiVersion: v2
+    appVersion: 1.0.3
     created: "2026-01-14T16:27:40.68063045Z"
     description: A Helm chart for Kubernetes
     digest: 51b5e0955334487dd94957ed9a30ac80147cd7a7f146f98b9baeb28487a7be6a
@@ -1630,4 +1640,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-24T20:11:56.912405969Z"
+generated: "2026-10-15T15:09:46.843940813Z"
