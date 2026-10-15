@@ -68,6 +68,44 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+# Routing on the Gateway instead of nginx. Turn ingress.enabled off in the same
+# change: the chart refuses to render both, since they would claim the same
+# hostnames. Backends stay plain HTTP because TLS ends at the Gateway.
+httpRoute:
+  enabled: false
+  # Points at the Gateway the argocd repo deploys from core-resources/gateway:
+  # release fc-gw, namespace fc-gateway, listener https.
+  gateway:
+    name: fc-gw
+    namespace: fc-gateway
+    sectionName: https
+  hostnames: []
+  # Empty uses service.port.
+  port: ""
+  timeout: ""
+  requestHeaders: {}
+  # Empty routes the whole site. Each entry: path, and optionally
+  # rewritePrefix, timeout, requestHeaders.
+  rules: []
+  # A route accepts at most 16 hostnames, so a longer list is split across as
+  # many routes as it needs and each gets a numbered suffix. Nothing to maintain
+  # here: add the 17th hostname and the split happens, and a list that fits
+  # keeps the plain release name.
+  #
+  # routes is for the other case, where one route will not do because rules
+  # apply to every hostname on it and some of these need a different path. Set
+  # this instead of hostnames and rules above, not as well. Each entry:
+  # hostnames, and optionally name, rules, timeout, requestHeaders. name is
+  # suffixed to the release name, and one entry may leave it out.
+  #
+  #   routes:
+  #     - hostnames: [a.example.com]
+  #     - name: borrowerportal
+  #       hostnames: [b.example.com]
+  #       rules:
+  #         - path: /borrowerportal
+  routes: []
+
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
