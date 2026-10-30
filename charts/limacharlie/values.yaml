@@ -1,11 +1,35 @@
-name: "k8s-pods"
-logPath: "/var/log/pods"
-namespace: default
-sensor:
-  image: "refractionpoint/limacharlie_sensor:latest"
-  tags: "env=staging,cluster=firstclose-staging"
+# Prefix for every resource name. Changing it renames the DaemonSets, and a
+# DaemonSet selector is immutable, so ArgoCD would have to recreate them.
+agentName: limacharlie
 
-limacharlie:
-  name: lc-adapter-k8s-pods
-  agent:
-    name: limacharlie
+# Installation key, synced by External Secrets from the cluster's Key Vault.
+installationKey:
+  secretStore: azure-store
+  remoteKey: LIMACHARLIELICENSE
+  refreshInterval: 1h
+
+# Sensor tags, e.g. "env=prod,cluster=firstclose-prod". Only the Linux sensor
+# reads them: the Windows installer has no tags option, so Windows sensors get
+# the tags of the installation key.
+tags: ""
+
+linux:
+  enabled: true
+  # The image is only published as "latest"; the digest pins it so a new push
+  # does not roll every cluster unannounced.
+  image: refractionpoint/limacharlie_sensor:latest@sha256:2c849fe29e6b63e01ef03d8a9ff8bf90b782b31be7ce110d86b301ce68ed257b
+  tolerations: []
+  resources: {}
+
+windows:
+  enabled: false
+  # A HostProcess container runs on the node itself, so this image only has to
+  # exist; the install script runs with the node's PowerShell.
+  image: mcr.microsoft.com/oss/kubernetes/windows-host-process-containers-base-image:v1.0.0
+  installerUrl: https://downloads.limacharlie.io/sensor/windows/64
+  tolerations:
+    - key: os
+      operator: Equal
+      value: Windows
+      effect: NoSchedule
+  resources: {}

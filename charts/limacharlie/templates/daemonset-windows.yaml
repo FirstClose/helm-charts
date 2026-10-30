@@ -1,0 +1,58 @@
+{{- if .Values.windows.enabled }}
+# Windows has no privileged containers and LimaCharlie publishes no Windows
+# image, so a HostProcess container installs the native sensor as a service
+# on the node and then keeps it running. The sensor belongs to the node: removing
+# this DaemonSet does not uninstall it (run "rphcp.exe -c" on the node for that).
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Values.agentName }}-agent-windows
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.agentName }}-windows
+    {{- include "limacharlie.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      name: {{ .Values.agentName }}-agent-windows
+  template:
+    metadata:
+      labels:
+        name: {{ .Values.agentName }}-agent-windows
+    spec:
+      nodeSelector:
+        kubernetes.io/os: windows
+      {{- with .Values.windows.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      hostNetwork: true
+      securityContext:
+        windowsOptions:
+          hostProcess: true
+          runAsUserName: "NT AUTHORITY\\SYSTEM"
+      containers:
+        - name: {{ .Values.agentName }}
+          image: {{ .Values.windows.image }}
+          command:
+            - powershell.exe
+            - -NoProfile
+            - -NonInteractive
+            - -ExecutionPolicy
+            - Bypass
+            - -Command
+            - |
+              {{- .Files.Get "files/windows-sensor.ps1" | nindent 14 }}
+          env:
+            - name: LC_INSTALLATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "limacharlie.secretName" . }}
+                  key: license
+            - name: LC_INSTALLER_URL
+              value: {{ .Values.windows.installerUrl | quote }}
+          {{- with .Values.windows.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}
