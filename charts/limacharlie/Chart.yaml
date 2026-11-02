@@ -1,6 +1,6 @@
 apiVersion: v2
 name: limacharlie
-description: A Helm chart for deploying LimaCharlie adapter
+description: LimaCharlie EDR sensor for the Linux and Windows nodes of a cluster
 type: application
-version: 1.0.2
-appVersion: "1.0.2"
+version: 2.0.0
+appVersion: "2.0.0"

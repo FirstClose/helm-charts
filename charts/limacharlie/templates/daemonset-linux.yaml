@@ -1,0 +1,71 @@
+{{- if .Values.linux.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  # Name and selector match chart 1.x, so upgrading updates the DaemonSet in
+  # place instead of recreating it.
+  name: {{ .Values.agentName }}-agent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.agentName }}
+    {{- include "limacharlie.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      name: {{ .Values.agentName }}-agent
+  template:
+    metadata:
+      labels:
+        name: {{ .Values.agentName }}-agent
+    spec:
+      nodeSelector:
+        kubernetes.io/os: linux
+      {{- with .Values.linux.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      hostNetwork: true
+      hostPID: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: {{ .Values.agentName }}
+          image: {{ .Values.linux.image }}
+          env:
+            - name: LC_INSTALLATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "limacharlie.secretName" . }}
+                  key: license
+            - name: LC_TAGS
+              value: {{ .Values.tags | quote }}
+          # An EDR sensor watches the whole host, so it needs the host's
+          # devices, processes and kernel interfaces.
+          securityContext:
+            privileged: true
+          {{- with .Values.linux.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: dev
+              mountPath: /dev
+            - name: proc
+              mountPath: /proc
+            - name: sys
+              mountPath: /sys
+            - name: etc
+              mountPath: /etc
+      volumes:
+        - name: dev
+          hostPath:
+            path: /dev
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys
+        - name: etc
+          hostPath:
+            path: /etc
+{{- end }}
