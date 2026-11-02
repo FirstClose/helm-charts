@@ -41,8 +41,10 @@ spec:
             - -ExecutionPolicy
             - Bypass
             - -Command
-            - |
-              {{- .Files.Get "files/windows-sensor.ps1" | nindent 14 }}
+            # The script travels as base64 on a single line: Windows flattens
+            # the command into one string, and a multi-line -Command only runs
+            # its first line.
+            - "& ([scriptblock]::Create([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('{{ .Files.Get "files/windows-sensor.ps1" | b64enc }}'))))"
           env:
             - name: LC_INSTALLATION_KEY
               valueFrom:
