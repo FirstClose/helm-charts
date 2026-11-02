@@ -1,4 +1,6 @@
 $ErrorActionPreference = 'Stop'
+# The progress bar makes Invoke-WebRequest crawl on Windows PowerShell 5.1.
+$ProgressPreference = 'SilentlyContinue'
 $service = 'rphcpsvc'
 
 if (-not (Get-Service $service -ErrorAction SilentlyContinue)) {
