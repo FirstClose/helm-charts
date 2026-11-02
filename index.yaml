@@ -726,6 +726,16 @@ entries:
     version: 0.1.0
   limacharlie:
   - apiVersion: v2
+    appVersion: 2.0.1
+    created: "2026-11-02T16:33:57.122740432Z"
+    description: LimaCharlie EDR sensor for the Linux and Windows nodes of a cluster
+    digest: 1032fe8a5596ea14bb6c54971a8fb8fe08113ed7577e863905715b86a056315f
+    name: limacharlie
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/limacharlie-2.0.1/limacharlie-2.0.1.tgz
+    version: 2.0.1
+  - apiVersion: v2
     appVersion: 2.0.0
     created: "2026-11-02T15:15:22.675003153Z"
     description: LimaCharlie EDR sensor for the Linux and Windows nodes of a cluster
@@ -1650,4 +1660,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-02T15:15:22.67534048Z"
+generated: "2026-11-02T16:33:57.123011246Z"
