@@ -47,9 +47,10 @@
 {{- end }}
 {{- /* The certificate has to carry the name BackendTLSPolicy verifies, or the
        policy rejects what this very chart issued. Defaults to every hostname
-       the route serves, which is what the Ingress tls block covered before. */}}
+       the routes serve (extraRoutes included), which is what the Ingress tls block
+       covered before. */}}
 {{- $backendTLSHostname := .Values.httpRoute.backendTLSHostname | default (first .Values.httpRoute.hostnames) }}
-{{- $dnsNames := .Values.httpRoute.backendCertificateDnsNames | default .Values.httpRoute.hostnames }}
+{{- $dnsNames := .Values.httpRoute.backendCertificateDnsNames | default (include "fconet.httpRouteHostnames" . | fromJsonArray) }}
 {{- if not (has $backendTLSHostname $dnsNames) }}{{ fail (printf "BackendTLSPolicy verifies %s but the backend certificate would not carry that name; add it to httpRoute.backendCertificateDnsNames" $backendTLSHostname) }}{{ end }}
 {{- $pkcs12 := .Values.httpRoute.backendCertificatePKCS12 }}
 {{- if $pkcs12.enabled }}
