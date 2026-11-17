@@ -265,6 +265,16 @@ entries:
   fcone:
   - apiVersion: v2
     appVersion: 1.0.22
+    created: "2026-11-17T08:56:39.847944418Z"
+    description: A Helm chart for Kubernetes
+    digest: d6e6f4f81c84a40024b64c0d0cb471b717a653e64d3666f1b3cf5b19539c0e86
+    name: fcone
+    type: application
+    urls:
+    - https://github.com/FirstClose/helm-charts/releases/download/fcone-1.1.5/fcone-1.1.5.tgz
+    version: 1.1.5
+  - apiVersion: v2
+    appVersion: 1.0.22
     created: "2026-09-09T14:37:13.713267722Z"
     description: A Helm chart for Kubernetes
     digest: c119b0a47a82861a46f408d8b922c52e6317ca9c476e156c3757ecfa738d853e
@@ -1660,4 +1670,4 @@ entries:
     urls:
     - https://github.com/FirstClose/helm-charts/releases/download/vite-0.1.0/vite-0.1.0.tgz
     version: 0.1.0
-generated: "2026-11-02T16:33:57.123011246Z"
+generated: "2026-11-17T08:56:39.849580406Z"
