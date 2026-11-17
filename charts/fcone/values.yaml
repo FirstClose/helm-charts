@@ -127,6 +127,13 @@ ingress:
 #   timeout            total time a request may take
 #   requestHeaders     headers set before the request reaches the backend
 #   rules              path rules, defaults to one prefix match on /
+#   extraRoutes        further HTTPRoutes to the same Service, each on its own
+#                      Gateway with its own hostnames, e.g. a Cloudflare-only
+#                      gateway for most names and an internet-facing one for
+#                      DNS-only names. Each entry: name (suffix of the route's
+#                      name), gateway, hostnames, and optionally rules (else the
+#                      rules above). A hostname may sit on only one route. Its
+#                      names also get IIS bindings and backend-certificate SANs.
 #   manageWebsiteBindings
 #                      derive the WEBSITE- IIS bindings from hostnames. Turn off
 #                      only for an app that names its bindings by hand.
@@ -168,6 +175,14 @@ httpRoute:
   timeout: ""
   requestHeaders: {}
   rules: []
+  extraRoutes: []
+  # - name: direct
+  #   gateway:
+  #     name: fc-one-gw-direct
+  #     namespace: fc-one-gateway
+  #     sectionName: https
+  #   hostnames:
+  #     - services2.firstclose.com
   manageWebsiteBindings: true
   backendCertificate: false
   backendCertificateSecretName: ""

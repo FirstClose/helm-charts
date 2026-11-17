@@ -62,7 +62,8 @@ Create the name of the service account to use
 {{- end }}
 
 {{/*
-The configMap data, with the IIS host bindings derived from httpRoute.hostnames.
+The configMap data, with the IIS host bindings derived from httpRoute.hostnames
+and every httpRoute.extraRoutes entry's.
 
 Those WEBSITE- entries drive two things inside the container: the HTTPS binding
 IIS creates for each hostname, and the loop that binds the certificate to those
@@ -81,7 +82,7 @@ bindings by hand keeps them exactly as they are.
 {{- end }}
 {{- if and .Values.httpRoute .Values.httpRoute.enabled .Values.httpRoute.manageWebsiteBindings }}
 {{- $derived := dict }}
-{{- range .Values.httpRoute.hostnames }}
+{{- range (include "fconet.httpRouteHostnames" . | fromJsonArray) }}
 {{- /* Wildcard labels are dropped before the key is taken: "*" is legal in a
        hostname but not in a ConfigMap key or an env var name, so *.foo.com
        would otherwise render WEBSITE-* and the API server would reject both
@@ -101,4 +102,101 @@ bindings by hand keeps them exactly as they are.
 {{- end }}
 {{- end }}
 {{- toYaml $cm -}}
+{{- end }}
+
+{{/*
+Every hostname the app answers on: httpRoute.hostnames followed by each
+extraRoutes entry's, as a JSON list (fromJsonArray to read it). The IIS
+bindings and the backend certificate are derived from this, so a name served
+only by an extra route still gets its binding and its SAN.
+
+Also where extraRoutes is checked, because every consumer passes through it.
+*/}}
+{{- define "fconet.httpRouteHostnames" -}}
+{{- $all := list }}
+{{- range .Values.httpRoute.hostnames }}
+{{- $all = append $all . }}
+{{- end }}
+{{- $names := list }}
+{{- range .Values.httpRoute.extraRoutes }}
+{{- if not .name }}{{ fail "every httpRoute.extraRoutes entry needs a name; it becomes the suffix of the HTTPRoute's name" }}{{ end }}
+{{- if not (regexMatch "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" .name) }}{{ fail (printf "httpRoute.extraRoutes name %q must be lowercase letters, digits and dashes" .name) }}{{ end }}
+{{- if has .name $names }}{{ fail (printf "httpRoute.extraRoutes name %s is used twice, so both would render the same HTTPRoute" .name) }}{{ end }}
+{{- $names = append $names .name }}
+{{- if not .hostnames }}{{ fail (printf "httpRoute.extraRoutes %s needs at least one hostname" .name) }}{{ end }}
+{{- range .hostnames }}
+{{- /* The same name on two routes would put it on both Gateways, the very
+       thing a separate route exists to avoid. */}}
+{{- if has . $all }}{{ fail (printf "hostname %s appears on more than one route in httpRoute; each name belongs to exactly one Gateway" .) }}{{ end }}
+{{- $all = append $all . }}
+{{- end }}
+{{- end }}
+{{- toJson $all -}}
+{{- end }}
+
+{{/*
+One HTTPRoute to the app's Service. Takes a dict: root (the chart context),
+name, gateway (name, namespace, sectionName), hostnames and rules. The main
+route and every extraRoutes entry render through this, so they cannot drift.
+*/}}
+{{- define "fconet.httpRoute" -}}
+{{- $root := .root }}
+{{- $fullName := include "fconet.fullname" $root }}
+{{- $port := $root.Values.httpRoute.port | default $root.Values.service.port }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ .name }}
+  labels:
+    {{- include "fconet.labels" $root | nindent 4 }}
+spec:
+  parentRefs:
+    - name: {{ .gateway.name }}
+      namespace: {{ .gateway.namespace }}
+      sectionName: {{ .gateway.sectionName }}
+  hostnames:
+    {{- range .hostnames }}
+    - {{ . | quote }}
+    {{- end }}
+  rules:
+    {{- /* No rules means the whole site, which is what most apps want. */}}
+    {{- range $rule := (.rules | default (list dict)) }}
+    {{- $headers := $root.Values.httpRoute.requestHeaders }}
+    {{- if hasKey $rule "requestHeaders" }}{{- $headers = $rule.requestHeaders }}{{- end }}
+    {{- $timeout := $root.Values.httpRoute.timeout }}
+    {{- if hasKey $rule "timeout" }}{{- $timeout = $rule.timeout }}{{- end }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: {{ $rule.path | default "/" | quote }}
+      {{- if or $headers $rule.rewritePrefix }}
+      filters:
+        {{- if $headers }}
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            set:
+              {{- range $name, $value := $headers }}
+              - name: {{ $name | quote }}
+                value: {{ $value | quote }}
+              {{- end }}
+        {{- end }}
+        {{- if $rule.rewritePrefix }}
+        {{- /* Drops the matched prefix so an app served under a subpath still
+               receives the paths it expects. */}}
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: {{ $rule.rewritePrefix | quote }}
+        {{- end }}
+      {{- end }}
+      backendRefs:
+        - name: {{ $fullName }}
+          port: {{ $port }}
+      {{- if $timeout }}
+      timeouts:
+        request: {{ $timeout | quote }}
+      {{- end }}
+    {{- end }}
 {{- end }}
